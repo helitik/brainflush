@@ -1,0 +1,13 @@
+# Cloudflare Pages Functions local secrets (used by wrangler / npm run dev:full)
+# Copy this file to .dev.vars and fill in your values.
+
+# GitHub OAuth App (server-side token exchange)
+GITHUB_CLIENT_ID=
+GITHUB_CLIENT_SECRET=
+
+# Google OAuth Client (server-side token exchange)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+
+# Comma-separated list of allowed origins for CORS (optional)
+# ALLOWED_ORIGINS=http://localhost:5173
