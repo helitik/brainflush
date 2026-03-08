@@ -109,11 +109,11 @@ export const google = {
     if (!clientId) throw new Error('Missing VITE_GOOGLE_CLIENT_ID')
 
     const verifier = generateCodeVerifier()
-    sessionStorage.setItem('google-pkce-verifier', verifier)
+    localStorage.setItem('google-pkce-verifier', verifier)
 
     generateCodeChallenge(verifier).then((challenge) => {
       const state = crypto.randomUUID()
-      sessionStorage.setItem('google-oauth-state', state)
+      localStorage.setItem('google-oauth-state', state)
 
       const params = new URLSearchParams({
         client_id: clientId,
@@ -133,10 +133,10 @@ export const google = {
   async handleCallback(searchParams) {
     const code = searchParams.get('code')
     const state = searchParams.get('state')
-    const savedState = sessionStorage.getItem('google-oauth-state')
-    const verifier = sessionStorage.getItem('google-pkce-verifier')
-    sessionStorage.removeItem('google-oauth-state')
-    sessionStorage.removeItem('google-pkce-verifier')
+    const savedState = localStorage.getItem('google-oauth-state')
+    const verifier = localStorage.getItem('google-pkce-verifier')
+    localStorage.removeItem('google-oauth-state')
+    localStorage.removeItem('google-pkce-verifier')
 
     if (!code || !state || state !== savedState || !verifier) {
       throw new Error('Invalid OAuth callback')

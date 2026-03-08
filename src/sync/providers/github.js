@@ -50,7 +50,7 @@ export const github = {
     const clientId = import.meta.env.VITE_GITHUB_CLIENT_ID
     if (!clientId) throw new Error('Missing VITE_GITHUB_CLIENT_ID')
     const state = crypto.randomUUID()
-    sessionStorage.setItem('github-oauth-state', state)
+    localStorage.setItem('github-oauth-state', state)
     const params = new URLSearchParams({
       client_id: clientId,
       scope: 'gist',
@@ -63,8 +63,8 @@ export const github = {
   async handleCallback(searchParams) {
     const code = searchParams.get('code')
     const state = searchParams.get('state')
-    const savedState = sessionStorage.getItem('github-oauth-state')
-    sessionStorage.removeItem('github-oauth-state')
+    const savedState = localStorage.getItem('github-oauth-state')
+    localStorage.removeItem('github-oauth-state')
 
     if (!code || !state || state !== savedState) {
       throw new Error('Invalid OAuth callback')
