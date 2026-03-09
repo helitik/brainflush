@@ -84,10 +84,15 @@ When running `npm run dev:full` (wrangler), the OAuth callback functions need se
 | Command | Description |
 |---------|-------------|
 | `npm run dev` | Start Vite dev server with HMR |
-| `npm run dev:full` | Dev server with Cloudflare Pages Functions (wrangler) |
+| `npm run dev:full` | Dev server + Cloudflare Pages Functions (OAuth callbacks) |
 | `npm run build` | Production build |
 | `npm run lint` | Run ESLint |
 | `npm run preview` | Preview production build locally |
+| `npm run preview:full` | Build + preview + wrangler (notifications + OAuth) |
+
+> **Which command to use?**
+> - `dev` / `dev:full` — fast HMR, but no service worker → notifications won't fire
+> - `preview:full` — full production build with SW + OAuth. Use this to test reminders and notifications (e.g. via ngrok)
 
 ## Project Structure
 

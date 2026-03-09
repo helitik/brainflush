@@ -211,6 +211,15 @@ export const en = {
   'reminder.backgroundNote': 'Reminders work best when the app is open.',
   'reminder.installHint': 'Add the app to your home screen to receive notifications.',
 
+  // Error boundary
+  'error.title': 'Oops, something broke!',
+  'error.subtitle': "Don't worry, your data is safe. Try reloading.",
+  'error.showDetails': 'Show error details',
+  'error.hideDetails': 'Hide error details',
+  'error.copy': 'Copy error',
+  'error.copied': 'Copied!',
+  'error.reload': 'Reload the app',
+
   // Seed data
   'seed.tabSideProject': 'Side Project',
   'seed.tabFitness': 'Fitness',
@@ -441,6 +450,15 @@ export const fr = {
   'reminder.unsupported': 'Les notifications ne sont pas supportées sur ce navigateur.',
   'reminder.backgroundNote': 'Les rappels fonctionnent mieux quand l\'app est ouverte.',
   'reminder.installHint': "Ajouter l'app à l'écran d'accueil pour recevoir les notifications.",
+
+  // Error boundary
+  'error.title': 'Oups, quelque chose a cassé !',
+  'error.subtitle': 'Pas de panique, vos données sont en sécurité. Essayez de recharger.',
+  'error.showDetails': "Voir les détails de l'erreur",
+  'error.hideDetails': "Masquer les détails de l'erreur",
+  'error.copy': "Copier l'erreur",
+  'error.copied': 'Copié !',
+  'error.reload': "Recharger l'app",
 
   // Seed data
   'seed.tabSideProject': 'Projet perso',

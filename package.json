@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:full": "wrangler pages dev --compatibility-date=2024-01-01 --ip 0.0.0.0 -- npm run dev -- --host",
+    "dev:full": "npm run dev -- --host & wrangler pages dev --ip 0.0.0.0 --proxy 5173",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "preview:full": "npm run build && npm run preview -- --host & sleep 2 && wrangler pages dev --ip 0.0.0.0 --proxy 4173"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
