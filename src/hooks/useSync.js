@@ -22,6 +22,7 @@ export function useSync() {
   const syncStatus = useStore((s) => s.syncStatus)
   const syncError = useStore((s) => s.syncError)
   const lastSyncedAt = useStore((s) => s.lastSyncedAt)
+  const lastSyncCompletedAt = useStore((s) => s.lastSyncCompletedAt)
   const localModifiedAt = useStore((s) => s.localModifiedAt)
   const pendingRemoteData = useStore((s) => s.pendingRemoteData)
   const setSyncProvider = useStore((s) => s.setSyncProvider)
@@ -57,6 +58,7 @@ export function useSync() {
     syncStatus,
     syncError,
     lastSyncedAt,
+    lastSyncCompletedAt,
     localModifiedAt,
     pendingRemoteData,
     syncUserInfo,

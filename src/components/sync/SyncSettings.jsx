@@ -20,7 +20,7 @@ const hasGithubCredentials = !!import.meta.env.VITE_GITHUB_CLIENT_ID
 const hasGoogleCredentials = !!import.meta.env.VITE_GOOGLE_CLIENT_ID
 
 export function SyncSettings({ onClose }) {
-  const { syncProvider, syncStatus, lastSyncedAt, connect, disconnect, triggerSync, syncUserInfo } = useSync()
+  const { syncProvider, syncStatus, lastSyncCompletedAt, localModifiedAt, connect, disconnect, triggerSync, syncUserInfo } = useSync()
   const { t } = useLanguage()
 
   return (
@@ -90,10 +90,15 @@ export function SyncSettings({ onClose }) {
                           ? t('sync.error')
                           : syncStatus === 'offline'
                             ? t('sync.offline')
-                            : lastSyncedAt
-                              ? t('sync.lastSync', new Date(lastSyncedAt).toLocaleTimeString())
+                            : lastSyncCompletedAt
+                              ? t('sync.lastSync', new Date(lastSyncCompletedAt).toLocaleTimeString())
                               : t('sync.neverSynced')}
                     </div>
+                    {localModifiedAt && syncStatus !== 'syncing' && (
+                      <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                        {t('sync.lastModified', new Date(localModifiedAt).toLocaleTimeString())}
+                      </div>
+                    )}
                   </div>
                 </div>
 

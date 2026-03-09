@@ -44,7 +44,7 @@ const CloudPending = () => (
 )
 
 export function SyncStatus({ onClick }) {
-  const { syncProvider, syncStatus, lastSyncedAt, localModifiedAt } = useSync()
+  const { syncProvider, syncStatus, lastSyncedAt, lastSyncCompletedAt, localModifiedAt } = useSync()
   const { t } = useLanguage()
 
   let icon, color, title
@@ -71,7 +71,7 @@ export function SyncStatus({ onClick }) {
   } else if (syncProvider && lastSyncedAt) {
     icon = <CloudCheck />
     color = 'var(--color-primary-500)'
-    title = t('sync.lastSync', new Date(lastSyncedAt).toLocaleTimeString())
+    title = t('sync.lastSync', new Date(lastSyncCompletedAt || lastSyncedAt).toLocaleTimeString())
   } else if (syncProvider) {
     icon = <CloudCheck />
     color = 'var(--color-primary-500)'

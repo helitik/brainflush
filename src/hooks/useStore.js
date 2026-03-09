@@ -81,6 +81,7 @@ export const useStore = create(
       hasCompletedOnboarding: false,
 
       // --- Sync fields (transient) ---
+      lastSyncCompletedAt: null,
       syncStatus: 'idle',
       syncError: null,
       pendingRemoteData: null,
@@ -362,6 +363,7 @@ export const useStore = create(
       setSyncStatus: (status, error = null) =>
         set({ syncStatus: status, syncError: error, _skipTimestamp: true }),
       setLastSyncedAt: (ts) => set({ lastSyncedAt: ts, _skipTimestamp: true }),
+      setLastSyncCompletedAt: () => set({ lastSyncCompletedAt: Date.now(), _skipTimestamp: true }),
       setPendingRemoteData: (envelope) => set({ pendingRemoteData: envelope, _skipTimestamp: true }),
       setDisconnectedProvider: (provider) => set({ disconnectedProvider: provider, _skipTimestamp: true }),
       replaceData: (data) =>
@@ -605,7 +607,7 @@ export const useStore = create(
         return persisted
       },
       partialize: (state) => {
-        const { justArchivedIds, syncStatus, syncError, pendingRemoteData, disconnectedProvider, ...persisted } = state
+        const { justArchivedIds, lastSyncCompletedAt, syncStatus, syncError, pendingRemoteData, disconnectedProvider, ...persisted } = state
         return persisted
       },
     }

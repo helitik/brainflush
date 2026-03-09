@@ -46,7 +46,7 @@ async function getAccessToken() {
     })
   } catch {
     // Network error — preserve tokens for retry
-    throw new Error('tokenExpired')
+    throw new Error('networkError')
   }
   if (!res.ok) {
     // Only clear tokens on definitive auth failure (revoked/invalid)
@@ -102,6 +102,13 @@ export const google = {
 
   isConnected() {
     return !!getTokens()
+  },
+
+  async ensureAuth() {
+    const tokens = getTokens()
+    if (!tokens) throw new Error('notConnected')
+    if (Date.now() < tokens.expires_at - 60_000) return
+    await getAccessToken()
   },
 
   startAuth() {

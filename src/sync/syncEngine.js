@@ -174,6 +174,7 @@ async function doPush() {
       saveBase(localData)
     }
 
+    useStore.getState().setLastSyncCompletedAt()
     useStore.getState().setSyncStatus('idle')
     hasPendingPush = false
     retryCount = 0
@@ -250,6 +251,7 @@ async function doPull(silent = false) {
       useStore.getState().setLastSyncedAt(envelope.updatedAt)
       saveBase(envelope.data)
     }
+    useStore.getState().setLastSyncCompletedAt()
     if (!silent) useStore.getState().setSyncStatus('idle')
   } catch (e) {
     console.error('[sync] pull error:', e)
@@ -260,7 +262,7 @@ async function doPull(silent = false) {
     }
     if (!silent) useStore.getState().setSyncStatus('error', e.message)
     // Retry once on tokenExpired (e.g. Google refresh may succeed on second attempt)
-    if (e.message === 'tokenExpired' && !pullRetried) {
+    if ((e.message === 'tokenExpired' || e.message === 'networkError') && !pullRetried) {
       pullRetried = true
       pullRetryTimer = setTimeout(() => {
         pullRetried = false
@@ -333,22 +335,38 @@ export function startSyncEngine() {
     if (document.visibilityState === 'visible') {
       // Clear any pending pull retry to avoid double-pulls
       if (pullRetryTimer) { clearTimeout(pullRetryTimer); pullRetryTimer = null; pullRetried = false }
-      if (hasPendingPush) {
-        retryCount = 0
-        if (retryTimer) { clearTimeout(retryTimer); retryTimer = null }
-        doPush()
-      } else if (!isSyncing) {
-        doPull(false)  // non-silent so user sees syncing state on return
-      }
-      resetPollInterval()
+
+      const provider = getProvider()
+      const authReady = provider?.ensureAuth
+        ? provider.ensureAuth().catch(() => {})
+        : Promise.resolve()
+
+      authReady.then(() => {
+        if (hasPendingPush) {
+          retryCount = 0
+          if (retryTimer) { clearTimeout(retryTimer); retryTimer = null }
+          doPush()
+        } else if (!isSyncing) {
+          doPull(false)  // non-silent so user sees syncing state on return
+        }
+        resetPollInterval()
+      })
     }
   }
   document.addEventListener('visibilitychange', visibilityHandler)
 
   focusHandler = () => {
     if (!isSyncing && !hasPendingPush) {
-      doPull(false)
-      resetPollInterval()
+      const provider = getProvider()
+      const authReady = provider?.ensureAuth
+        ? provider.ensureAuth().catch(() => {})
+        : Promise.resolve()
+      authReady.then(() => {
+        if (!isSyncing && !hasPendingPush) {
+          doPull(false)
+          resetPollInterval()
+        }
+      })
     }
   }
   window.addEventListener('focus', focusHandler)
@@ -357,11 +375,10 @@ export function startSyncEngine() {
     useStore.getState().setSyncStatus('offline')
   }
 
-  // Google token refresh
+  // Google token refresh — lightweight, just ensures token stays fresh
   if (provider.name === 'google') {
     refreshInterval = setInterval(() => {
-      // Trigger a lightweight call so the provider refreshes its token internally
-      provider.getRemoteUpdatedAt().catch(() => {})
+      provider.ensureAuth().catch(() => {})
     }, GOOGLE_REFRESH_INTERVAL_MS)
   }
 
