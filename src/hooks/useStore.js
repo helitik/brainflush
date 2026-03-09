@@ -41,12 +41,14 @@ function createDefaultData() {
 }
 
 // Middleware: auto-set localModifiedAt on every mutation, unless _skipTimestamp is set
+// If the updater function returns the same state reference, skip the timestamp (no-op)
 const autoTimestamp = (config) => (rawSet, get, api) =>
   config(
     (partial, replace) => {
       if (typeof partial === 'function') {
         rawSet((state) => {
           const result = partial(state)
+          if (result === state) return state
           if (result?._skipTimestamp) {
             const { _skipTimestamp, ...rest } = result
             return rest
@@ -85,7 +87,10 @@ export const useStore = create(
       disconnectedProvider: null,
 
       // --- Tabs ---
-      setActiveTab: (id) => set({ activeTabId: id, showArchive: false }),
+      setActiveTab: (id) => set((s) => {
+        if (s.activeTabId === id && !s.showArchive) return s
+        return { activeTabId: id, showArchive: false, _skipTimestamp: true }
+      }),
 
       addTab: (name, emoji = '') => {
         const id = generateId()
@@ -316,6 +321,12 @@ export const useStore = create(
             otherTasks.map((t, i) => [t.id, { columnId: toColumnId, order: i }])
           )
 
+          const hasChanges = s.tasks.some((t) => {
+            const update = updatedIds.get(t.id)
+            return update && (t.columnId !== update.columnId || t.order !== update.order)
+          })
+          if (!hasChanges) return s
+
           return {
             tasks: s.tasks.map((t) => {
               const update = updatedIds.get(t.id)
@@ -326,16 +337,25 @@ export const useStore = create(
         }),
 
       // --- Archives ---
-      setShowArchive: (show) => set({ showArchive: show }),
+      setShowArchive: (show) => set((s) => {
+        if (s.showArchive === show) return s
+        return { showArchive: show, _skipTimestamp: true }
+      }),
 
       // --- Theme ---
-      setTheme: (theme) => set({ theme }),
+      setTheme: (theme) => set((s) => {
+        if (s.theme === theme) return s
+        return { theme }
+      }),
 
       // --- Onboarding ---
-      completeOnboarding: () => set({ hasCompletedOnboarding: true }),
+      completeOnboarding: () => set({ hasCompletedOnboarding: true, _skipTimestamp: true }),
 
       // --- Language ---
-      setLanguage: (language) => set({ language }),
+      setLanguage: (language) => set((s) => {
+        if (s.language === language) return s
+        return { language }
+      }),
 
       // --- Sync actions ---
       setSyncProvider: (provider) => set({ syncProvider: provider, _skipTimestamp: true }),

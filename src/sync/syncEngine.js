@@ -85,7 +85,7 @@ export function clearBase() {
 }
 
 // Fields that constitute "user data" changes (not sync metadata)
-const DATA_KEYS = ['tabs', 'columns', 'tasks', 'activeTabId', 'theme', 'language', 'showArchive']
+const DATA_KEYS = ['tabs', 'columns', 'tasks', 'theme', 'language']
 
 function stateSnapshot(state) {
   return DATA_KEYS.map((k) => state[k])
@@ -134,7 +134,11 @@ function scheduleRetry() {
 
 async function doPush() {
   const provider = getProvider()
-  if (!provider || isSyncing) return
+  if (!provider) return
+  if (isSyncing) {
+    hasPendingPush = true
+    return
+  }
 
   isSyncing = true
   const store = useStore.getState()
@@ -266,6 +270,9 @@ async function doPull(silent = false) {
     }
   } finally {
     isSyncing = false
+    if (hasPendingPush) {
+      schedulePush()
+    }
   }
 }
 
@@ -339,7 +346,6 @@ export function startSyncEngine() {
   document.addEventListener('visibilitychange', visibilityHandler)
 
   focusHandler = () => {
-    console.log('[sync] window focus detected', { isSyncing, hasPendingPush })
     if (!isSyncing && !hasPendingPush) {
       doPull(false)
       resetPollInterval()
@@ -425,6 +431,7 @@ export function resolveConflict(choice) {
 
   if (choice === 'remote' && envelope?.data) {
     state.replaceData(preserveLocalPins(envelope.data))
+    prevSnapshot = stateSnapshot(useStore.getState())
     state.setLastSyncedAt(envelope.updatedAt)
     saveBase(envelope.data)
   } else if (choice === 'merge' && envelope?.data) {

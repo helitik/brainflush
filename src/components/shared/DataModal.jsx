@@ -79,6 +79,7 @@ export function DataModal({ isOpen, onClose }) {
       theme: pendingImport.theme ?? state.theme,
       language: pendingImport.language ?? state.language,
     })
+    useStore.setState({ localModifiedAt: Date.now() })
     setPendingImport(null)
     onClose()
   }

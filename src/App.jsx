@@ -27,7 +27,7 @@ import { ArchiveView } from './components/tasks/ArchiveView'
 import { TaskDetailModal } from './components/tasks/TaskDetailModal'
 import { useBackClose, useNavigationBack } from './hooks/useBackClose'
 import { useIsDesktop } from './hooks/useIsDesktop'
-import { useSync } from './hooks/useSync'
+import { useSyncEngine } from './hooks/useSync'
 import { SyncSettings } from './components/sync/SyncSettings'
 import { SyncConflict } from './components/sync/SyncConflict'
 import { SyncReconnect } from './components/sync/SyncReconnect'
@@ -67,7 +67,7 @@ import { google } from './sync/providers/google'
 
 function App() {
   useTheme()
-  useSync()
+  useSyncEngine()
   const { t } = useLanguage()
   const isDesktop = useIsDesktop()
 
@@ -430,13 +430,11 @@ function App() {
       const activeIndex = items.indexOf(active.id)
 
       if (activeContainer === overContainer) {
-        // Within-column reorder
+        // Within-column reorder — only if position actually changed
         const overIndex = items.indexOf(over.id)
         if (overIndex >= 0 && activeIndex !== overIndex) {
           const newOrder = arrayMove(items, activeIndex, overIndex)
           moveTask(active.id, activeContainer, newOrder.indexOf(active.id))
-        } else {
-          moveTask(active.id, activeContainer, activeIndex >= 0 ? activeIndex : 0)
         }
       } else {
         // Cross-column (onDragOver should have handled this, but commit position)

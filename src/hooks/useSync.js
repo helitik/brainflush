@@ -1,7 +1,22 @@
-import { useEffect, useCallback, useRef } from 'react'
+import { useEffect, useCallback } from 'react'
 import { useStore } from './useStore'
 import { startSyncEngine, stopSyncEngine, triggerManualSync, resolveConflict, clearBase, providers } from '../sync/syncEngine'
 
+// Called ONLY from App.jsx — manages sync engine lifecycle
+export function useSyncEngine() {
+  const syncProvider = useStore((s) => s.syncProvider)
+
+  useEffect(() => {
+    if (syncProvider && providers[syncProvider]?.isConnected()) {
+      startSyncEngine()
+    } else {
+      stopSyncEngine()
+    }
+    return () => stopSyncEngine()
+  }, [syncProvider])
+}
+
+// Called from any component — reads state and provides actions, no engine lifecycle
 export function useSync() {
   const syncProvider = useStore((s) => s.syncProvider)
   const syncStatus = useStore((s) => s.syncStatus)
@@ -10,19 +25,6 @@ export function useSync() {
   const localModifiedAt = useStore((s) => s.localModifiedAt)
   const pendingRemoteData = useStore((s) => s.pendingRemoteData)
   const setSyncProvider = useStore((s) => s.setSyncProvider)
-
-  const prevProvider = useRef(syncProvider)
-
-  // Start/stop engine when provider changes
-  useEffect(() => {
-    if (syncProvider && providers[syncProvider]?.isConnected()) {
-      startSyncEngine()
-    } else {
-      stopSyncEngine()
-    }
-    prevProvider.current = syncProvider
-    return () => stopSyncEngine()
-  }, [syncProvider])
 
   const connect = useCallback((providerName) => {
     const provider = providers[providerName]
