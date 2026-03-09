@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react'
 import { useStore, getMaxPinnedTabs } from '../../hooks/useStore'
-import { stopSyncEngine, clearBase, providers } from '../../sync/syncEngine'
 import { useTheme } from '../../hooks/useTheme'
 import { useLanguage } from '../../hooks/useLanguage'
 import { useBackClose } from '../../hooks/useBackClose'
@@ -16,7 +15,7 @@ function useMaxPinnedTabs() {
   return max
 }
 
-export function Drawer({ open, onClose, onSyncClick }) {
+export function Drawer({ open, onClose, onSyncClick, onDataClick }) {
   const tabs = useStore((s) => s.tabs)
   const activeTabId = useStore((s) => s.activeTabId)
   const setActiveTab = useStore((s) => s.setActiveTab)
@@ -147,42 +146,19 @@ export function Drawer({ open, onClose, onSyncClick }) {
         {/* Bottom actions */}
         <div className="border-t py-2" style={{ borderColor: 'var(--border-color)' }}>
           {import.meta.env.DEV && (
-            <>
-              <button
-                onClick={() => {
-                  useStore.getState().seedTestData()
-                  onClose()
-                }}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
-                style={{ color: 'var(--text-muted)' }}
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-                </svg>
-                <span className="font-medium">{t('drawer.seedData')}</span>
-              </button>
-              <button
-                onClick={() => {
-                  if (window.confirm(t('drawer.clearDataConfirm'))) {
-                    stopSyncEngine()
-                    const providerName = useStore.getState().syncProvider
-                    if (providerName && providers[providerName]) {
-                      providers[providerName].disconnect()
-                    }
-                    clearBase()
-                    useStore.getState().clearAllData()
-                    onClose()
-                  }
-                }}
-                className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
-                style={{ color: '#ef4444' }}
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                <span className="font-medium">{t('drawer.clearData')}</span>
-              </button>
-            </>
+            <button
+              onClick={() => {
+                useStore.getState().seedTestData()
+                onClose()
+              }}
+              className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+              </svg>
+              <span className="font-medium">{t('drawer.seedData')}</span>
+            </button>
           )}
 
           <button
@@ -197,6 +173,28 @@ export function Drawer({ open, onClose, onSyncClick }) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
             </svg>
             <span className="font-medium">{t('drawer.archives')}</span>
+          </button>
+
+          <button
+            onClick={() => { onSyncClick?.(); onClose() }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19.35 10.04A7.49 7.49 0 0012 4a7.49 7.49 0 00-6.65 4.04A5.99 5.99 0 001 14a6 6 0 006 6h10a5 5 0 001.35-9.96z" />
+            </svg>
+            <span className="font-medium">{t('drawer.cloudSync')}</span>
+          </button>
+
+          <button
+            onClick={() => { onDataClick?.(); onClose() }}
+            className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
+            style={{ color: 'var(--text-secondary)' }}
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
+            </svg>
+            <span className="font-medium">{t('drawer.data')}</span>
           </button>
 
           <button
@@ -223,17 +221,6 @@ export function Drawer({ open, onClose, onSyncClick }) {
               <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
             </svg>
             <span className="font-medium">{t('drawer.language')}: {language.toUpperCase()}</span>
-          </button>
-
-          <button
-            onClick={() => { onSyncClick?.(); onClose() }}
-            className="w-full flex items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-surface-100 dark:hover:bg-surface-800"
-            style={{ color: 'var(--text-secondary)' }}
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.35 10.04A7.49 7.49 0 0012 4a7.49 7.49 0 00-6.65 4.04A5.99 5.99 0 001 14a6 6 0 006 6h10a5 5 0 001.35-9.96z" />
-            </svg>
-            <span className="font-medium">{t('drawer.cloudSync')}</span>
           </button>
         </div>
       </div>

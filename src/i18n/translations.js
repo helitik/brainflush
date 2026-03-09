@@ -168,6 +168,18 @@ export const en = {
   'sync.reconnect': 'Reconnect',
   'sync.dismiss': 'Dismiss',
   'drawer.cloudSync': 'Cloud sync',
+  'drawer.data': 'My data',
+
+  // Data export/import
+  'data.title': 'My data',
+  'data.export': 'Export',
+  'data.import': 'Import',
+  'data.exportSuccess': 'Data exported successfully',
+  'data.importError': 'Invalid file',
+  'data.importConfirm': 'This will replace all your current data. Continue?',
+  'data.confirmReplace': 'Replace',
+  'data.clearConfirmWord': 'DELETE',
+  'data.clearConfirmPrompt': (word) => `Type "${word}" to confirm`,
 
   // Onboarding
   'onboarding.welcomeTitle': 'Welcome to Brainflush!',
@@ -374,6 +386,18 @@ export const fr = {
   'sync.reconnect': 'Reconnecter',
   'sync.dismiss': 'Ignorer',
   'drawer.cloudSync': 'Synchro cloud',
+  'drawer.data': 'Mes données',
+
+  // Data export/import
+  'data.title': 'Mes données',
+  'data.export': 'Exporter',
+  'data.import': 'Importer',
+  'data.exportSuccess': 'Données exportées avec succès',
+  'data.importError': 'Fichier invalide',
+  'data.importConfirm': 'Cela remplacera toutes vos données actuelles. Continuer ?',
+  'data.confirmReplace': 'Remplacer',
+  'data.clearConfirmWord': 'SUPPRIMER',
+  'data.clearConfirmPrompt': (word) => `Tapez « ${word} » pour confirmer`,
 
   // Onboarding
   'onboarding.welcomeTitle': 'Bienvenue sur Brainflush !',

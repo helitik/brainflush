@@ -32,6 +32,7 @@ import { SyncSettings } from './components/sync/SyncSettings'
 import { SyncConflict } from './components/sync/SyncConflict'
 import { SyncReconnect } from './components/sync/SyncReconnect'
 import { InstallBanner } from './components/layout/InstallBanner'
+import { DataModal } from './components/shared/DataModal'
 import { OnboardingModal } from './components/onboarding/OnboardingModal'
 import { github } from './sync/providers/github'
 import { google } from './sync/providers/google'
@@ -88,6 +89,7 @@ function App() {
   const [addSheetColumnId, setAddSheetColumnId] = useState(null)
   const [showColumnEditor, setShowColumnEditor] = useState(false)
   const [showSyncSettings, setShowSyncSettings] = useState(false)
+  const [showDataModal, setShowDataModal] = useState(false)
   const [activeTask, setActiveTask] = useState(null)
   const [detailTask, setDetailTask] = useState(null)
 
@@ -105,6 +107,7 @@ function App() {
   useBackClose(addSheetOpen, () => setAddSheetOpen(false))
   useBackClose(showColumnEditor, () => setShowColumnEditor(false))
   useBackClose(showSyncSettings, () => setShowSyncSettings(false))
+  useBackClose(showDataModal, () => setShowDataModal(false))
   useBackClose(!!detailTask, () => setDetailTask(null))
   useBackClose(showOnboarding, () => { useStore.getState().completeOnboarding(); setShowOnboarding(false) })
 
@@ -503,7 +506,7 @@ function App() {
         onSyncClick={() => setShowSyncSettings(true)}
       />
 
-      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onSyncClick={() => setShowSyncSettings(true)} />
+      <Drawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onSyncClick={() => setShowSyncSettings(true)} onDataClick={() => setShowDataModal(true)} />
 
       {showArchive ? (
         <ArchiveView />
@@ -687,6 +690,9 @@ function App() {
       {showSyncSettings && (
         <SyncSettings onClose={() => setShowSyncSettings(false)} />
       )}
+
+      {/* Data export/import modal */}
+      <DataModal isOpen={showDataModal} onClose={() => setShowDataModal(false)} />
 
       {/* Sync conflict dialog */}
       <SyncConflict />
