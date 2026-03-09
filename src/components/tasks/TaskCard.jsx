@@ -95,10 +95,10 @@ export function TaskCard({ task, onOpenDetail }) {
         {/* Text */}
         <span
           onClick={isJustArchived ? undefined : () => onOpenDetail?.(task)}
-          className={`flex-1 text-sm select-none min-w-0 break-words ${isJustArchived ? '' : 'cursor-pointer'}`}
+          className={`flex-1 text-sm select-none min-w-0 break-words whitespace-pre-line ${isJustArchived ? '' : 'cursor-pointer'}`}
           style={isJustArchived
-            ? { color: 'var(--text-primary)', textDecoration: 'line-through', opacity: 0.5 }
-            : { color: 'var(--text-primary)' }
+            ? { color: 'var(--text-primary)', textDecoration: 'line-through', opacity: 0.5, display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }
+            : { color: 'var(--text-primary)', display: '-webkit-box', WebkitLineClamp: 5, WebkitBoxOrient: 'vertical', overflow: 'hidden' }
           }
         >
           {task.text}

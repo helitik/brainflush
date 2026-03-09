@@ -52,12 +52,12 @@ export function AddTaskSheet({ open, onClose, initialColumnId }) {
 
   if (!open) return null
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+  const handleSubmit = () => {
     const trimmed = text.trim()
     if (!trimmed || !columnId) return
     addTask(columnId, trimmed)
     setText('')
+    if (inputRef.current) inputRef.current.style.height = 'auto'
     if (navigator.vibrate) navigator.vibrate(10)
     inputRef.current?.focus()
   }
@@ -97,7 +97,7 @@ export function AddTaskSheet({ open, onClose, initialColumnId }) {
           ))}
         </div>
 
-        <form onSubmit={handleSubmit}>
+        <div>
           {/* Column selector */}
           <div className="flex gap-2 mb-3 overflow-x-auto no-scrollbar">
             {columns.map((col) => (
@@ -118,14 +118,19 @@ export function AddTaskSheet({ open, onClose, initialColumnId }) {
           </div>
 
           {/* Input */}
-          <div className="flex gap-2">
-            <input
+          <div className="flex gap-2 items-end">
+            <textarea
               ref={inputRef}
-              type="text"
+              rows={1}
               value={text}
-              onChange={(e) => setText(e.target.value)}
+              onChange={(e) => {
+                setText(e.target.value)
+                const el = e.target
+                el.style.height = 'auto'
+                el.style.height = Math.min(el.scrollHeight, 120) + 'px'
+              }}
               placeholder={t('addTask.placeholder')}
-              className="flex-1 px-4 py-3 rounded-xl border text-sm outline-none"
+              className="flex-1 px-4 py-3 rounded-xl border text-sm outline-none resize-none overflow-y-auto"
               style={{
                 background: 'var(--bg-input)',
                 borderColor: 'var(--border-color)',
@@ -133,15 +138,16 @@ export function AddTaskSheet({ open, onClose, initialColumnId }) {
               }}
             />
             <button
-              type="submit"
+              type="button"
               disabled={!text.trim()}
+              onClick={handleSubmit}
               className="px-4 py-3 rounded-xl text-sm font-medium text-white transition-colors disabled:opacity-40 hover:opacity-90"
               style={{ background: 'var(--color-primary-500)' }}
             >
               {t('addTask.submit')}
             </button>
           </div>
-        </form>
+        </div>
       </div>
     </div>
   )
