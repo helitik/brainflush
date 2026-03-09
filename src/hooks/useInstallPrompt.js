@@ -5,10 +5,9 @@ const DISMISSED_KEY = 'brainflush-install-dismissed'
 export function useInstallPrompt() {
   const [installPrompt, setInstallPrompt] = useState(null)
   const [isInstalled, setIsInstalled] = useState(false)
+  const [dismissed, setDismissed] = useState(() => !!localStorage.getItem(DISMISSED_KEY))
 
   useEffect(() => {
-    if (localStorage.getItem(DISMISSED_KEY)) return
-
     const onBeforeInstall = (e) => {
       e.preventDefault()
       setInstallPrompt(e)
@@ -39,8 +38,8 @@ export function useInstallPrompt() {
 
   const dismissInstall = useCallback(() => {
     localStorage.setItem(DISMISSED_KEY, Date.now())
-    setInstallPrompt(null)
+    setDismissed(true)
   }, [])
 
-  return { installPrompt, isInstalled, triggerInstall, dismissInstall }
+  return { installPrompt, isInstalled, dismissed, triggerInstall, dismissInstall }
 }

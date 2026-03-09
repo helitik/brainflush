@@ -7,7 +7,7 @@ import { ColumnHeader } from './ColumnHeader'
 import { TaskCard } from '../tasks/TaskCard'
 import { TaskInput } from '../tasks/TaskInput'
 
-export function Column({ column, onAddTask, liveTaskIds, onOpenDetail, dragHandleProps = null }) {
+export function Column({ column, onAddTask, liveTaskIds, onOpenDetail, highlightedTaskId, dragHandleProps = null }) {
   const allTasks = useStore((s) => s.tasks)
   const justArchivedIds = useStore((s) => s.justArchivedIds)
   const { t } = useLanguage()
@@ -137,7 +137,7 @@ export function Column({ column, onAddTask, liveTaskIds, onOpenDetail, dragHandl
       >
         <SortableContext items={taskIds} strategy={verticalListSortingStrategy}>
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onOpenDetail={onOpenDetail} />
+            <TaskCard key={task.id} task={task} onOpenDetail={onOpenDetail} isHighlighted={task.id === highlightedTaskId} />
           ))}
         </SortableContext>
         {tasks.length === 0 && (

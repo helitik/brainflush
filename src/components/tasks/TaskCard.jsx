@@ -4,12 +4,28 @@ import { CSS } from '@dnd-kit/utilities'
 import { useStore } from '../../hooks/useStore'
 import { useLanguage } from '../../hooks/useLanguage'
 
-export function TaskCard({ task, onOpenDetail }) {
+function formatRelativeTime(timestamp, language) {
+  const now = Date.now()
+  const diff = timestamp - now
+  if (diff <= 0) return { label: language === 'fr' ? 'En retard' : 'Overdue', overdue: false }
+  const minutes = Math.ceil(diff / 60000)
+  if (minutes <= 1) return { label: '< 1m', overdue: false }
+  if (minutes < 60) return { label: `${minutes}m`, overdue: false }
+  const hours = Math.round(diff / 3600000)
+  if (hours < 24) return { label: `${hours}h`, overdue: false }
+  const days = Math.round(diff / 86400000)
+  if (days === 1) return { label: language === 'fr' ? 'Demain' : 'Tomorrow', overdue: false }
+  return { label: `${days}d`, overdue: false }
+}
+
+export function TaskCard({ task, onOpenDetail, isHighlighted }) {
   const archiveTask = useStore((s) => s.archiveTask)
   const restoreTask = useStore((s) => s.restoreTask)
   const justArchivedIds = useStore((s) => s.justArchivedIds)
-  const { t } = useLanguage()
+  const { language, t } = useLanguage()
   const isJustArchived = task.archived && justArchivedIds.includes(task.id)
+  const hasReminder = task.reminderAt && !task.archived
+  const reminderInfo = hasReminder ? formatRelativeTime(task.reminderAt, language) : null
 
   const firstUrl = useMemo(() => {
     const m = task.text.match(/https?:\/\/\S+/)
@@ -58,7 +74,7 @@ export function TaskCard({ task, onOpenDetail }) {
       {...listeners}
     >
       <div
-        className="relative flex items-start gap-2 p-3 rounded-lg transition-shadow group hover:shadow-md"
+        className={`relative flex items-start gap-2 p-3 rounded-lg transition-shadow group hover:shadow-md${isHighlighted ? ' animate-highlight-pulse' : ''}`}
         style={{
           background: isJustArchived ? 'color-mix(in srgb, var(--bg-card) 85%, black)' : 'var(--bg-card)',
           boxShadow: isJustArchived ? 'none' : 'var(--shadow-sm)',
@@ -103,6 +119,19 @@ export function TaskCard({ task, onOpenDetail }) {
         >
           {task.text}
         </span>
+
+        {/* Reminder indicator */}
+        {reminderInfo && (
+          <span
+            className="mt-0.5 shrink-0 flex items-center gap-0.5 text-xs"
+            style={{ color: reminderInfo.overdue ? '#ef4444' : 'var(--text-muted)' }}
+          >
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            {reminderInfo.label}
+          </span>
+        )}
 
         {/* External link icon */}
         {firstUrl && !isJustArchived && (

@@ -232,6 +232,8 @@ export const useStore = create(
                 originalColumnId: null,
                 createdAt: Date.now(),
                 order: colTasks.length,
+                reminderAt: null,
+                reminderFired: false,
               },
             ],
           }
@@ -336,6 +338,28 @@ export const useStore = create(
             }),
           }
         }),
+
+      // --- Reminders ---
+      setReminder: (id, reminderAt) =>
+        set((s) => ({
+          tasks: s.tasks.map((t) =>
+            t.id === id ? { ...t, reminderAt, reminderFired: false } : t
+          ),
+        })),
+
+      clearReminder: (id) =>
+        set((s) => ({
+          tasks: s.tasks.map((t) =>
+            t.id === id ? { ...t, reminderAt: null, reminderFired: false } : t
+          ),
+        })),
+
+      markReminderFired: (id) =>
+        set((s) => ({
+          tasks: s.tasks.map((t) =>
+            t.id === id ? { ...t, reminderFired: true } : t
+          ),
+        })),
 
       // --- Archives ---
       setShowArchive: (show) => set((s) => {
@@ -581,7 +605,7 @@ export const useStore = create(
     })),
     {
       name: 'brainflush-data',
-      version: 6,
+      version: 7,
       migrate: (persisted, version) => {
         if (version < 2 && persisted.theme === 'system') {
           persisted.theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
@@ -603,6 +627,13 @@ export const useStore = create(
         }
         if (version < 6) {
           persisted.hasCompletedOnboarding = true
+        }
+        if (version < 7 && persisted.tasks) {
+          persisted.tasks = persisted.tasks.map((t) => ({
+            ...t,
+            reminderAt: t.reminderAt ?? null,
+            reminderFired: t.reminderFired ?? false,
+          }))
         }
         return persisted
       },

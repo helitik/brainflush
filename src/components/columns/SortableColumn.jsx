@@ -2,7 +2,7 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { Column } from './Column'
 
-export function SortableColumn({ column, liveTaskIds, onOpenDetail }) {
+export function SortableColumn({ column, liveTaskIds, onOpenDetail, highlightedTaskId }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `col-sort-${column.id}`,
     data: { type: 'column', columnId: column.id },
@@ -25,7 +25,7 @@ export function SortableColumn({ column, liveTaskIds, onOpenDetail }) {
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Column column={column} liveTaskIds={liveTaskIds} onOpenDetail={onOpenDetail}
+      <Column column={column} liveTaskIds={liveTaskIds} onOpenDetail={onOpenDetail} highlightedTaskId={highlightedTaskId}
         dragHandleProps={{ ...attributes, ...listeners }} />
     </div>
   )

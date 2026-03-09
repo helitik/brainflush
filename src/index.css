@@ -134,3 +134,14 @@ button {
 .animate-slide-up {
   animation: slideUp 0.25s ease-out;
 }
+
+@keyframes highlightPulse {
+  0% { outline-color: var(--color-primary-500); }
+  100% { outline-color: transparent; }
+}
+
+.animate-highlight-pulse {
+  outline: 2px solid var(--color-primary-500);
+  outline-offset: -2px;
+  animation: highlightPulse 5s ease-out forwards;
+}

@@ -28,6 +28,7 @@ import { TaskDetailModal } from './components/tasks/TaskDetailModal'
 import { useBackClose, useNavigationBack } from './hooks/useBackClose'
 import { useIsDesktop } from './hooks/useIsDesktop'
 import { useSyncEngine } from './hooks/useSync'
+import { useReminderEngine } from './hooks/useReminders'
 import { SyncSettings } from './components/sync/SyncSettings'
 import { SyncConflict } from './components/sync/SyncConflict'
 import { SyncReconnect } from './components/sync/SyncReconnect'
@@ -63,11 +64,19 @@ import { google } from './sync/providers/google'
         window.history.replaceState({}, '', '/')
       })
   }
+
+  // Notification click deep-link: store taskId for React to consume
+  const taskIdParam = params.get('taskId')
+  if (taskIdParam) {
+    window.__pendingTaskId = taskIdParam
+    window.history.replaceState({}, '', '/')
+  }
 })()
 
 function App() {
   useTheme()
   useSyncEngine()
+  useReminderEngine()
   const { t } = useLanguage()
   const isDesktop = useIsDesktop()
 
@@ -92,6 +101,7 @@ function App() {
   const [showDataModal, setShowDataModal] = useState(false)
   const [activeTask, setActiveTask] = useState(null)
   const [detailTask, setDetailTask] = useState(null)
+  const [highlightedTaskId, setHighlightedTaskId] = useState(null)
 
   const hasCompletedOnboarding = useStore((s) => s.hasCompletedOnboarding)
   const [showOnboarding, setShowOnboarding] = useState(!hasCompletedOnboarding)
@@ -179,6 +189,59 @@ function App() {
       setMobileColIndex(newIdx)
     }
   }, [columns])
+
+  // Deep-link from notification click: navigate to task's tab/column and open detail
+  useEffect(() => {
+    const taskId = window.__pendingTaskId
+    if (!taskId) return
+    delete window.__pendingTaskId
+
+    const state = useStore.getState()
+    const task = state.tasks.find((t) => t.id === taskId)
+    if (!task) return
+    const column = state.columns.find((c) => c.id === task.columnId)
+    if (!column) return
+
+    setActiveTab(column.tabId)
+
+    const tabCols = state.columns
+      .filter((c) => c.tabId === column.tabId)
+      .sort((a, b) => a.order - b.order)
+    const colIdx = tabCols.findIndex((c) => c.id === column.id)
+
+    // Defer column index update to after tab change render
+    setTimeout(() => {
+      if (colIdx >= 0) setMobileColIndex(colIdx)
+      setHighlightedTaskId(task.id)
+      setTimeout(() => setHighlightedTaskId(null), 5000)
+    }, 100)
+  }, [setActiveTab])
+
+  // Listen for SW postMessage when notification is clicked while app is open
+  useEffect(() => {
+    const handler = (event) => {
+      if (event.data?.type !== 'open-task') return
+      const state = useStore.getState()
+      const task = state.tasks.find((t) => t.id === event.data.taskId)
+      if (!task) return
+      const column = state.columns.find((c) => c.id === task.columnId)
+      if (!column) return
+
+      setActiveTab(column.tabId)
+      const tabCols = state.columns
+        .filter((c) => c.tabId === column.tabId)
+        .sort((a, b) => a.order - b.order)
+      const colIdx = tabCols.findIndex((c) => c.id === column.id)
+
+      setTimeout(() => {
+        if (colIdx >= 0) setMobileColIndex(colIdx)
+        setHighlightedTaskId(task.id)
+        setTimeout(() => setHighlightedTaskId(null), 5000)
+      }, 100)
+    }
+    navigator.serviceWorker?.addEventListener('message', handler)
+    return () => navigator.serviceWorker?.removeEventListener('message', handler)
+  }, [setActiveTab])
 
   // DnD sensors — mouse for desktop, touch for mobile
   const sensors = useSensors(
@@ -523,7 +586,7 @@ function App() {
             <div className="flex flex-1 gap-4 p-4 overflow-x-auto overflow-y-hidden items-start">
               <SortableContext items={columnSortIds} strategy={horizontalListSortingStrategy}>
                 {columns.map((col) => (
-                  <SortableColumn key={col.id} column={col} liveTaskIds={liveTaskMap?.[col.id]} onOpenDetail={setDetailTask} />
+                  <SortableColumn key={col.id} column={col} liveTaskIds={liveTaskMap?.[col.id]} onOpenDetail={setDetailTask} highlightedTaskId={highlightedTaskId} />
                 ))}
               </SortableContext>
 
@@ -573,7 +636,7 @@ function App() {
                 >
                   {columns.map((col) => (
                     <div key={col.id} className="w-full shrink-0 h-full p-3 flex flex-col">
-                      <Column column={col} onAddTask={() => { setAddSheetColumnId(col.id); setAddSheetOpen(true) }} liveTaskIds={liveTaskMap?.[col.id]} onOpenDetail={setDetailTask} />
+                      <Column column={col} onAddTask={() => { setAddSheetColumnId(col.id); setAddSheetOpen(true) }} liveTaskIds={liveTaskMap?.[col.id]} onOpenDetail={setDetailTask} highlightedTaskId={highlightedTaskId} />
                     </div>
                   ))}
                   {/* Add column ghost card */}

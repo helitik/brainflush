@@ -13,6 +13,9 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       VitePWA({
+        strategies: 'injectManifest',
+        srcDir: 'src',
+        filename: 'sw.js',
         registerType: 'autoUpdate',
         includeAssets: ['icons/*.png', 'icons/*.svg'],
         manifest: {
@@ -30,9 +33,8 @@ export default defineConfig(({ mode }) => {
             { src: '/icons/icon-512-maskable.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
           ],
         },
-        workbox: {
+        injectManifest: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-          navigateFallbackDenylist: [/^\/api\//],
         },
       }),
     ],

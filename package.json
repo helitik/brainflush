@@ -22,6 +22,7 @@
     "uuid": "^13.0.0",
     "vite-plugin-pwa": "^1.2.0",
     "workbox-precaching": "^7.4.0",
+    "workbox-routing": "^7.4.0",
     "zustand": "^5.0.11"
   },
   "overrides": {

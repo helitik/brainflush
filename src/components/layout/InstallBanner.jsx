@@ -2,10 +2,10 @@ import { useInstallPrompt } from '../../hooks/useInstallPrompt'
 import { useLanguage } from '../../hooks/useLanguage'
 
 export function InstallBanner() {
-  const { installPrompt, triggerInstall, dismissInstall } = useInstallPrompt()
+  const { installPrompt, dismissed, triggerInstall, dismissInstall } = useInstallPrompt()
   const { t } = useLanguage()
 
-  if (!installPrompt) return null
+  if (!installPrompt || dismissed) return null
 
   return (
     <div

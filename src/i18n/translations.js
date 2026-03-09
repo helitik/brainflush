@@ -199,6 +199,18 @@ export const en = {
   'install.description': 'Add to your home screen for quick access',
   'install.button': 'Install',
 
+  // Reminders
+  'reminder.add': 'Add reminder',
+  'reminder.clear': 'Clear',
+  'reminder.inOneHour': 'In 1h',
+  'reminder.tomorrowMorning': 'Tomorrow 8am',
+  'reminder.nextMonday': 'Mon 8am',
+  'reminder.set': (date) => `Reminder: ${date}`,
+  'reminder.permissionDenied': 'Notifications blocked. Enable them in your browser settings.',
+  'reminder.unsupported': 'Notifications are not supported on this browser.',
+  'reminder.backgroundNote': 'Reminders work best when the app is open.',
+  'reminder.installHint': 'Add the app to your home screen to receive notifications.',
+
   // Seed data
   'seed.tabSideProject': 'Side Project',
   'seed.tabFitness': 'Fitness',
@@ -417,6 +429,18 @@ export const fr = {
   'install.title': 'Installer Brainflush',
   'install.description': "Ajoutez \u00e0 votre \u00e9cran d'accueil pour un acc\u00e8s rapide",
   'install.button': 'Installer',
+
+  // Reminders
+  'reminder.add': 'Ajouter un rappel',
+  'reminder.clear': 'Supprimer',
+  'reminder.inOneHour': 'Dans 1h',
+  'reminder.tomorrowMorning': 'Demain 8h',
+  'reminder.nextMonday': 'Lun 8h',
+  'reminder.set': (date) => `Rappel : ${date}`,
+  'reminder.permissionDenied': 'Notifications bloquées. Activez-les dans les réglages du navigateur.',
+  'reminder.unsupported': 'Les notifications ne sont pas supportées sur ce navigateur.',
+  'reminder.backgroundNote': 'Les rappels fonctionnent mieux quand l\'app est ouverte.',
+  'reminder.installHint': "Ajouter l'app à l'écran d'accueil pour recevoir les notifications.",
 
   // Seed data
   'seed.tabSideProject': 'Projet perso',
