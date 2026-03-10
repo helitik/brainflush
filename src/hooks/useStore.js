@@ -218,7 +218,7 @@ export const useStore = create(
         const id = generateId()
         set((s) => {
           const colTasks = s.tasks.filter(
-            (t) => t.columnId === columnId && !t.archived
+            (t) => t.columnId === columnId && (!t.archived || s.justArchivedIds.includes(t.id))
           )
           return {
             tasks: [

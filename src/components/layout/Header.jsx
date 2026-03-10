@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useStore } from '../../hooks/useStore'
 import { useLanguage } from '../../hooks/useLanguage'
 import { SyncStatus } from '../sync/SyncStatus'
@@ -81,8 +82,9 @@ export function Header({ onMenuToggle, onSyncClick }) {
         </button>
       </div>
 
-      {showEditor && (
-        <TabEditor tab={null} onClose={() => setShowEditor(false)} />
+      {showEditor && createPortal(
+        <TabEditor tab={null} onClose={() => setShowEditor(false)} />,
+        document.body
       )}
 
       <div className="flex items-center gap-1 ml-auto">

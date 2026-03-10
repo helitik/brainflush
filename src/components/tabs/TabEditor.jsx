@@ -45,7 +45,7 @@ export function TabEditor({ tab, onClose }) {
   }
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 overflow-y-auto" style={{ background: 'var(--bg-overlay)' }}>
+    <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 overflow-y-auto" style={{ background: 'var(--bg-overlay)' }} onClick={onClose} onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); onClose() } }}>
       <div
         className="w-full max-w-md rounded-xl p-5 shadow-xl"
         style={{ background: 'var(--bg-card)' }}
