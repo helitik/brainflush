@@ -86,6 +86,35 @@ OAuth callback handlers for GitHub and Google. Exchange authorization code for t
 **CF env vars**: `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `ALLOWED_ORIGINS`
 **Vite env vars**: `VITE_GITHUB_CLIENT_ID`, `VITE_GOOGLE_CLIENT_ID`
 
+### Modal Pattern
+
+All modals (except mobile drawers: AddTaskSheet, TaskDetailModal) follow the same structure:
+
+```jsx
+{/* Overlay + centering */}
+<div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+  style={{ background: 'var(--bg-overlay)' }} onClick={onClose}>
+  {/* Card — no padding, overflow-hidden clips rounded corners */}
+  <div className="w-full max-w-sm rounded-xl shadow-lg overflow-hidden"
+    style={{ background: 'var(--bg-card)' }} onClick={(e) => e.stopPropagation()}>
+    {/* Header: title + X + border-b */}
+    <div className="flex items-center justify-between px-5 py-4 border-b"
+      style={{ borderColor: 'var(--border-color)' }}>
+      <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>{title}</h2>
+      <button onClick={onClose} className="p-1 rounded-lg" style={{ color: 'var(--text-secondary)' }}>
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+    {/* Content */}
+    <div className="p-5">...</div>
+  </div>
+</div>
+```
+
+Invariants: card `overflow-hidden` (no padding on card), header `px-5 py-4 border-b`, content `p-5`, X button in header. Exception: SyncConflict has no X (forced choice).
+
 ### Key Patterns
 
 - **Store mutations**: Spread to create new objects, return early if unchanged. Use `_skipTimestamp: true` for sync-related writes.

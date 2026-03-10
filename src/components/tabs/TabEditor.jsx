@@ -47,14 +47,23 @@ export function TabEditor({ tab, onClose }) {
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 overflow-y-auto" style={{ background: 'var(--bg-overlay)' }} onClick={onClose} onKeyDown={(e) => { if (e.key === 'Escape') { e.preventDefault(); onClose() } }}>
       <div
-        className="w-full max-w-md rounded-xl p-5 shadow-xl"
+        className="w-full max-w-md rounded-xl shadow-lg overflow-hidden"
         style={{ background: 'var(--bg-card)' }}
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-lg font-semibold mb-4">
-          {isNew ? t('tabEditor.newProject') : t('tabEditor.editProject')}
-        </h3>
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {isNew ? t('tabEditor.newProject') : t('tabEditor.editProject')}
+          </h2>
+          <button onClick={onClose} className="p-1 rounded-lg" style={{ color: 'var(--text-secondary)' }}>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
 
+        <div className="p-5">
         <form onSubmit={handleSubmit}>
           {/* Emoji picker */}
           <div className="flex flex-wrap gap-2 mb-4">
@@ -135,6 +144,7 @@ export function TabEditor({ tab, onClose }) {
             </button>
           </div>
         </form>
+        </div>
       </div>
     </div>
   )

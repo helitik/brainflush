@@ -24,15 +24,21 @@ export function SyncReconnect() {
         style={{ background: 'var(--bg-overlay)' }}
         onClick={dismiss}
       />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={dismiss}>
         <div
           className="w-full max-w-sm rounded-xl shadow-lg overflow-hidden"
           style={{ background: 'var(--bg-card)' }}
+          onClick={(e) => e.stopPropagation()}
         >
-          <div className="px-5 py-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
+          <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
             <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
               {providerLabel}
             </h2>
+            <button onClick={dismiss} className="p-1 rounded-lg" style={{ color: 'var(--text-secondary)' }}>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
           </div>
 
           <div className="p-5 space-y-4">

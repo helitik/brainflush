@@ -65,21 +65,30 @@ export function OnboardingModal({ onClose }) {
       />
 
       {/* Modal */}
-      <div className={positionClasses}>
+      <div className={positionClasses} onClick={handleClose}>
         <div
           className={cardClasses}
           style={{ background: 'var(--bg-card)' }}
           onClick={(e) => e.stopPropagation()}
         >
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+              {step === 0 ? t('onboarding.welcomeTitle') : t('onboarding.syncTitle')}
+            </h2>
+            <button onClick={handleClose} className="p-1 rounded-lg" style={{ color: 'var(--text-secondary)' }}>
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+
           <div className="p-5">
             {step === 0 ? (
               /* Step 0 — Welcome */
               <div className="space-y-5">
                 <div className="text-center">
-                  <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                    {t('onboarding.welcomeTitle')}
-                  </h2>
-                  <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                     {t('onboarding.welcomeSubtitle')}
                   </p>
                 </div>
@@ -116,10 +125,7 @@ export function OnboardingModal({ onClose }) {
               /* Step 1 — Sync */
               <div className="space-y-4">
                 <div className="text-center">
-                  <h2 className="text-xl font-bold" style={{ color: 'var(--text-primary)' }}>
-                    {t('onboarding.syncTitle')}
-                  </h2>
-                  <p className="text-sm mt-1" style={{ color: 'var(--text-secondary)' }}>
+                  <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
                     {t('onboarding.syncDescription')}
                   </p>
                 </div>

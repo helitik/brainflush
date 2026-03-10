@@ -170,12 +170,14 @@ export function TaskDetailModal({ task, onClose }) {
     <>
       {/* Scrollable content — everything except action buttons */}
       <div className="overflow-y-auto flex-1 min-h-0">
-        {/* Header */}
-        <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
-          {t('taskDetail.editTask')}
-        </h2>
+        {/* Title — mobile only (desktop uses modal header bar) */}
+        {!isDesktop && (
+          <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+            {t('taskDetail.editTask')}
+          </h2>
+        )}
         {formattedDate && (
-          <p className="text-xs mt-1 mb-3" style={{ color: 'var(--text-muted)' }}>
+          <p className={`text-xs ${!isDesktop ? 'mt-1' : ''} mb-3`} style={{ color: 'var(--text-muted)' }}>
             {t('taskDetail.created', formattedDate)}
           </p>
         )}
@@ -378,19 +380,38 @@ export function TaskDetailModal({ task, onClose }) {
     >
       <div
         ref={!isDesktop ? sheetRef : undefined}
-        className={`w-full shadow-xl flex flex-col ${isDesktop ? 'max-w-md max-h-[80vh] rounded-2xl p-5' : 'max-h-[85vh] rounded-t-2xl p-5'}`}
+        className={`w-full flex flex-col ${isDesktop ? 'max-w-md max-h-[80vh] rounded-xl shadow-lg overflow-hidden' : 'max-h-[85vh] rounded-t-2xl p-5 shadow-xl'}`}
         style={{
           background: 'var(--bg-card)',
           ...(!isDesktop && { paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }),
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {!isDesktop && (
-          <div className="py-3 -mx-5 px-5 cursor-grab" {...swipeHandlers}>
-            <div className="w-10 h-1 rounded-full mx-auto" style={{ background: 'var(--border-color)' }} />
-          </div>
+        {isDesktop ? (
+          <>
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                {t('taskDetail.editTask')}
+              </h2>
+              <button onClick={onClose} className="p-1 rounded-lg" style={{ color: 'var(--text-secondary)' }}>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="p-5 flex flex-col flex-1 min-h-0">
+              {modalContent}
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="py-3 -mx-5 px-5 cursor-grab" {...swipeHandlers}>
+              <div className="w-10 h-1 rounded-full mx-auto" style={{ background: 'var(--border-color)' }} />
+            </div>
+            {modalContent}
+          </>
         )}
-        {modalContent}
       </div>
 
       <ConfirmModal

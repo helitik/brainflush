@@ -33,7 +33,7 @@ export function SyncSettings({ onClose }) {
       />
 
       {/* Modal */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
         <div
           className="w-full max-w-sm rounded-xl shadow-lg overflow-hidden"
           style={{ background: 'var(--bg-card)' }}

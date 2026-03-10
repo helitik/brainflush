@@ -105,14 +105,15 @@ export function DataModal({ isOpen, onClose }) {
         onClick={onClose}
       >
         <div
-          className="w-full max-w-sm rounded-2xl p-6 shadow-xl"
+          className="w-full max-w-sm rounded-xl shadow-lg overflow-hidden"
           style={{ background: 'var(--bg-card)' }}
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-base font-semibold" style={{ color: 'var(--text-primary)' }}>
+          {/* Header */}
+          <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
+            <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
               {t('data.title')}
-            </h3>
+            </h2>
             <button onClick={onClose} className="p-1 rounded-lg" style={{ color: 'var(--text-secondary)' }}>
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -120,6 +121,7 @@ export function DataModal({ isOpen, onClose }) {
             </button>
           </div>
 
+          <div className="p-5">
           <div className="flex flex-col gap-3">
             {/* Export */}
             <button
@@ -176,6 +178,7 @@ export function DataModal({ isOpen, onClose }) {
               {t('drawer.clearData')}
             </button>
           </div>
+          </div>
         </div>
       </div>
 
@@ -197,43 +200,54 @@ export function DataModal({ isOpen, onClose }) {
           onClick={() => { setShowClearConfirm(false); setClearInput('') }}
         >
           <div
-            className="w-full max-w-sm rounded-2xl p-6 shadow-xl"
+            className="w-full max-w-sm rounded-xl shadow-lg overflow-hidden"
             style={{ background: 'var(--bg-card)' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="text-base font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>
-              {t('drawer.clearData')}
-            </h3>
-            <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
-              {t('drawer.clearDataConfirm')}
-            </p>
-            <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
-              {t('data.clearConfirmPrompt', t('data.clearConfirmWord'))}
-            </p>
-            <input
-              type="text"
-              value={clearInput}
-              onChange={(e) => setClearInput(e.target.value)}
-              className="w-full px-3 py-2 rounded-xl text-sm mb-4 outline-none"
-              style={{ background: 'var(--bg-input)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
-              autoFocus
-            />
-            <div className="flex gap-3">
-              <button
-                onClick={() => { setShowClearConfirm(false); setClearInput('') }}
-                className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
-                style={{ background: 'var(--bg-column)', color: 'var(--text-primary)' }}
-              >
-                {t('confirm.cancel')}
+            {/* Header */}
+            <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'var(--border-color)' }}>
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
+                {t('drawer.clearData')}
+              </h2>
+              <button onClick={() => { setShowClearConfirm(false); setClearInput('') }} className="p-1 rounded-lg" style={{ color: 'var(--text-secondary)' }}>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
-              <button
-                onClick={handleClearData}
-                disabled={clearInput !== t('data.clearConfirmWord')}
-                className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-colors disabled:opacity-40"
-                style={{ background: '#ef4444' }}
-              >
-                {t('confirm.delete')}
-              </button>
+            </div>
+
+            <div className="p-5">
+              <p className="text-sm mb-4" style={{ color: 'var(--text-secondary)' }}>
+                {t('drawer.clearDataConfirm')}
+              </p>
+              <p className="text-xs mb-2" style={{ color: 'var(--text-muted)' }}>
+                {t('data.clearConfirmPrompt', t('data.clearConfirmWord'))}
+              </p>
+              <input
+                type="text"
+                value={clearInput}
+                onChange={(e) => setClearInput(e.target.value)}
+                className="w-full px-3 py-2 rounded-xl text-sm mb-4 outline-none"
+                style={{ background: 'var(--bg-input)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
+                autoFocus
+              />
+              <div className="flex gap-3">
+                <button
+                  onClick={() => { setShowClearConfirm(false); setClearInput('') }}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-medium transition-colors"
+                  style={{ background: 'var(--bg-column)', color: 'var(--text-primary)' }}
+                >
+                  {t('confirm.cancel')}
+                </button>
+                <button
+                  onClick={handleClearData}
+                  disabled={clearInput !== t('data.clearConfirmWord')}
+                  className="flex-1 py-2.5 rounded-xl text-sm font-medium text-white transition-colors disabled:opacity-40"
+                  style={{ background: '#ef4444' }}
+                >
+                  {t('confirm.delete')}
+                </button>
+              </div>
             </div>
           </div>
         </div>,
