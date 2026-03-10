@@ -30,19 +30,14 @@ async function getAccessToken() {
     return tokens.access_token
   }
 
-  // Refresh
+  // Refresh via server-side endpoint (includes client_secret)
   if (!tokens.refresh_token) throw new Error('tokenExpired')
-  const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
   let res
   try {
-    res = await fetch('https://oauth2.googleapis.com/token', {
+    res = await fetch('/api/auth/google-refresh', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        client_id: clientId,
-        grant_type: 'refresh_token',
-        refresh_token: tokens.refresh_token,
-      }),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: tokens.refresh_token }),
     })
   } catch {
     // Network error — preserve tokens for retry
@@ -58,7 +53,8 @@ async function getAccessToken() {
   const data = await res.json()
   const updated = {
     access_token: data.access_token,
-    refresh_token: tokens.refresh_token,
+    // Handle refresh token rotation: use new token if provided, keep old otherwise
+    refresh_token: data.refresh_token || tokens.refresh_token,
     expires_at: Date.now() + data.expires_in * 1000,
   }
   saveTokens(updated)
@@ -97,6 +93,19 @@ async function findFile() {
   return null
 }
 
+// Encode forceConsent flag into the OAuth state parameter to survive redirects.
+// Format: "<uuid>|consent" when consent is forced, plain "<uuid>" otherwise.
+function encodeState(forceConsent) {
+  const uuid = crypto.randomUUID()
+  return forceConsent ? `${uuid}|consent` : uuid
+}
+
+function decodeState(state) {
+  if (!state) return { uuid: null, forceConsent: false }
+  const parts = state.split('|')
+  return { uuid: parts[0], forceConsent: parts[1] === 'consent' }
+}
+
 export const google = {
   name: 'google',
 
@@ -111,7 +120,7 @@ export const google = {
     await getAccessToken()
   },
 
-  startAuth() {
+  startAuth(forceConsent = false) {
     const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID
     if (!clientId) throw new Error('Missing VITE_GOOGLE_CLIENT_ID')
 
@@ -119,7 +128,7 @@ export const google = {
     localStorage.setItem('google-pkce-verifier', verifier)
 
     generateCodeChallenge(verifier).then((challenge) => {
-      const state = crypto.randomUUID()
+      const state = encodeState(forceConsent)
       localStorage.setItem('google-oauth-state', state)
 
       const params = new URLSearchParams({
@@ -128,7 +137,9 @@ export const google = {
         response_type: 'code',
         scope: 'https://www.googleapis.com/auth/drive.appdata',
         access_type: 'offline',
-        prompt: 'consent',
+        // Use select_account by default to avoid revoking other devices' refresh tokens.
+        // Only force consent when we need a new refresh token (fallback).
+        prompt: forceConsent ? 'consent' : 'select_account',
         state,
         code_challenge: challenge,
         code_challenge_method: 'S256',
@@ -149,6 +160,8 @@ export const google = {
       throw new Error('Invalid OAuth callback')
     }
 
+    const { forceConsent } = decodeState(state)
+
     const res = await fetch('/api/auth/google-callback', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -163,6 +176,17 @@ export const google = {
       throw new Error(`Token exchange failed: ${err.error || res.status}`)
     }
     const data = await res.json()
+
+    // If no refresh_token and we haven't forced consent yet, retry with consent.
+    // This happens when connecting a new device (user already granted access before).
+    if (!data.refresh_token && !forceConsent) {
+      return { needsConsent: true }
+    }
+
+    if (!data.refresh_token && forceConsent) {
+      throw new Error('Google did not provide a refresh token. Please try disconnecting and reconnecting.')
+    }
+
     saveTokens({
       access_token: data.access_token,
       refresh_token: data.refresh_token,
@@ -184,6 +208,7 @@ export const google = {
 
     // Try to find existing file
     await findFile()
+    return { needsConsent: false }
   },
 
   async push(envelope) {
