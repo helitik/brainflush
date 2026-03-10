@@ -29,6 +29,7 @@ import { useBackClose, useNavigationBack } from './hooks/useBackClose'
 import { useIsDesktop } from './hooks/useIsDesktop'
 import { useSyncEngine } from './hooks/useSync'
 import { useReminderEngine } from './hooks/useReminders'
+import { useUrlSync, resolveUrlTab } from './hooks/useUrlSync'
 import { SyncSettings } from './components/sync/SyncSettings'
 import { SyncConflict } from './components/sync/SyncConflict'
 import { SyncReconnect } from './components/sync/SyncReconnect'
@@ -37,6 +38,14 @@ import { DataModal } from './components/shared/DataModal'
 import { OnboardingModal } from './components/onboarding/OnboardingModal'
 import { github } from './sync/providers/github'
 import { google } from './sync/providers/google'
+import { tabsToSlugs } from './lib/slugify'
+
+function getActiveTabPath() {
+  const state = useStore.getState()
+  const slugMap = tabsToSlugs(state.tabs)
+  const slug = slugMap.get(state.activeTabId)
+  return slug ? '/' + slug : '/'
+}
 
 // Handle OAuth callbacks once at module load (before React StrictMode double-fires effects)
 ;(() => {
@@ -47,11 +56,11 @@ import { google } from './sync/providers/google'
     github.handleCallback(params)
       .then(() => {
         useStore.getState().setSyncProvider('github')
-        window.history.replaceState({}, '', '/')
+        window.history.replaceState({}, '', getActiveTabPath())
       })
       .catch((e) => {
         console.error('[sync] GitHub callback error:', e)
-        window.history.replaceState({}, '', '/')
+        window.history.replaceState({}, '', getActiveTabPath())
       })
   } else if (path === '/auth/google/callback' && params.has('code')) {
     google.handleCallback(params)
@@ -63,26 +72,33 @@ import { google } from './sync/providers/google'
           return
         }
         useStore.getState().setSyncProvider('google')
-        window.history.replaceState({}, '', '/')
+        window.history.replaceState({}, '', getActiveTabPath())
       })
       .catch((e) => {
         console.error('[sync] Google callback error:', e)
-        window.history.replaceState({}, '', '/')
+        window.history.replaceState({}, '', getActiveTabPath())
       })
   }
 
-  // Notification click deep-link: store taskId for React to consume
+  // Notification click deep-link: store taskId for React to consume, keep pathname
   const taskIdParam = params.get('taskId')
   if (taskIdParam) {
     window.__pendingTaskId = taskIdParam
-    window.history.replaceState({}, '', '/')
+    // Strip only the query param, keep pathname (useUrlSync will correct it after setActiveTab)
+    const url = new URL(window.location.href)
+    url.searchParams.delete('taskId')
+    window.history.replaceState({}, '', url.pathname + url.search)
   }
 })()
+
+// Resolve URL pathname → active tab synchronously before React renders
+resolveUrlTab()
 
 function App() {
   useTheme()
   useSyncEngine()
   useReminderEngine()
+  useUrlSync()
   const { t } = useLanguage()
   const isDesktop = useIsDesktop()
 
