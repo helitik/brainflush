@@ -96,7 +96,7 @@ export function TaskCard({ task, onOpenDetail, isHighlighted }) {
     })
     ro.observe(node)
     return () => ro.disconnect()
-  }, [task.id])
+  }, [task.id, isDragging])
 
   // Track if card was ever part of a sort — prevents animate-fade-in replay on drag end
   const [wasSorting, setWasSorting] = useState(false)
