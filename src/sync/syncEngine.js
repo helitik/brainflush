@@ -118,8 +118,12 @@ function autoDisconnect() {
   useStore.getState().setDisconnectedProvider(name)
 }
 
-function scheduleRetry() {
-  if (retryCount >= MAX_RETRIES) return
+function scheduleRetry(isAuthError = false) {
+  if (retryCount >= MAX_RETRIES) {
+    // Exhausted retries — if it's an auth problem, auto-disconnect
+    if (isAuthError) autoDisconnect()
+    return
+  }
   const delay = Math.min(5000 * 2 ** retryCount, 60000)
   retryCount++
   retryTimer = setTimeout(() => {
@@ -185,9 +189,10 @@ async function doPush() {
       autoDisconnect()
       return
     }
+    const isAuth = e.message === 'tokenExpired'
     useStore.getState().setSyncStatus('error', e.message)
     hasPendingPush = true
-    scheduleRetry()
+    scheduleRetry(isAuth)
   } finally {
     isSyncing = false
   }
@@ -261,7 +266,7 @@ async function doPull(silent = false) {
       return
     }
     if (!silent) useStore.getState().setSyncStatus('error', e.message)
-    // Retry once on tokenExpired (e.g. Google refresh may succeed on second attempt)
+    // Retry on transient errors (token refresh may succeed, network may come back)
     if ((e.message === 'tokenExpired' || e.message === 'networkError') && !pullRetried) {
       pullRetried = true
       pullRetryTimer = setTimeout(() => {
@@ -269,6 +274,11 @@ async function doPull(silent = false) {
         pullRetryTimer = null
         doPull(false)
       }, 2000)
+    } else if (e.message === 'tokenExpired' && pullRetried) {
+      // Second pull retry also failed with token error — schedule push retries
+      // which will eventually auto-disconnect after MAX_RETRIES
+      hasPendingPush = true
+      scheduleRetry(true)
     }
   } finally {
     isSyncing = false

@@ -55,7 +55,13 @@ import { google } from './sync/providers/google'
       })
   } else if (path === '/auth/google/callback' && params.has('code')) {
     google.handleCallback(params)
-      .then(() => {
+      .then((result) => {
+        if (result?.needsConsent) {
+          // No refresh_token returned (user already consented on another device).
+          // Retry once with forced consent to get a refresh token for this device.
+          google.startAuth(true)
+          return
+        }
         useStore.getState().setSyncProvider('google')
         window.history.replaceState({}, '', '/')
       })
