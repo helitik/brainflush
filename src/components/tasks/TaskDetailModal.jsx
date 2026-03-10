@@ -113,8 +113,9 @@ export function TaskDetailModal({ task, onClose }) {
       editTask(task.id, trimmed)
     }
     if (selectedColumnId !== task.columnId) {
-      const targetColTasks = useStore.getState().tasks
-        .filter((t) => t.columnId === selectedColumnId && !t.archived)
+      const state = useStore.getState()
+      const targetColTasks = state.tasks
+        .filter((t) => t.columnId === selectedColumnId && t.id !== task.id && (!t.archived || state.justArchivedIds.includes(t.id)))
       moveTask(task.id, selectedColumnId, targetColTasks.length)
     }
     // Persist reminder

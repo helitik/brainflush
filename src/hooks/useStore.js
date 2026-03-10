@@ -315,7 +315,7 @@ export const useStore = create(
           if (!task) return s
 
           const otherTasks = s.tasks.filter(
-            (t) => t.id !== taskId && t.columnId === toColumnId && !t.archived
+            (t) => t.id !== taskId && t.columnId === toColumnId && (!t.archived || s.justArchivedIds.includes(t.id))
           )
           otherTasks.sort((a, b) => a.order - b.order)
           otherTasks.splice(newIndex, 0, { ...task, columnId: toColumnId })

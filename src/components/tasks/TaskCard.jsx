@@ -41,7 +41,7 @@ export function TaskCard({ task, onOpenDetail, isHighlighted }) {
     transition,
     isDragging,
     isSorting,
-  } = useSortable({ id: task.id, data: sortableData, disabled: isJustArchived })
+  } = useSortable({ id: task.id, data: sortableData, disabled: isJustArchived ? { draggable: true } : false })
 
   // Track if card was ever part of a sort — prevents animate-fade-in replay on drag end
   const [wasSorting, setWasSorting] = useState(false)
