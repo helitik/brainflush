@@ -1,5 +1,10 @@
 import { precacheAndRoute, cleanupOutdatedCaches, createHandlerBoundToURL } from 'workbox-precaching'
 import { registerRoute, NavigationRoute } from 'workbox-routing'
+import { clientsClaim } from 'workbox-core'
+
+// Activate new SW immediately instead of waiting for all tabs to close
+self.skipWaiting()
+clientsClaim()
 
 // Precache all assets injected by vite-plugin-pwa
 precacheAndRoute(self.__WB_MANIFEST)
