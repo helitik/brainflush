@@ -6,11 +6,21 @@ import { useLanguage } from '../../hooks/useLanguage'
 import { ColumnHeader } from './ColumnHeader'
 import { TaskCard } from '../tasks/TaskCard'
 import { TaskInput } from '../tasks/TaskInput'
+import { useFileDrop, processFiles } from '../../hooks/useImages'
+import { showToast } from '../../hooks/useToast'
 
 export function Column({ column, onAddTask, liveTaskIds, onOpenDetail, highlightedTaskId, dragHandleProps = null }) {
   const allTasks = useStore((s) => s.tasks)
   const justArchivedIds = useStore((s) => s.justArchivedIds)
+  const addTask = useStore((s) => s.addTask)
   const { t } = useLanguage()
+
+  const handleFileDrop = useCallback(async (files) => {
+    const { ids, errors } = await processFiles(files, 3)
+    if (ids.length) addTask(column.id, '', ids)
+    if (errors.length) for (const err of new Set(errors)) showToast(t(`images.${err}`))
+  }, [column.id, addTask, t])
+  const { isDragOver: isFileOver, handlers: fileDropHandlers } = useFileDrop(handleFileDrop)
 
   const derivedTasks = useMemo(
     () => allTasks
@@ -114,11 +124,22 @@ export function Column({ column, onAddTask, liveTaskIds, onOpenDetail, highlight
 
   return (
     <div
-      className="flex flex-col min-h-0 max-h-full rounded-xl w-full md:min-w-[280px] md:w-[320px] shrink-0 transition-colors"
+      className="relative flex flex-col min-h-0 max-h-full rounded-xl w-full md:min-w-[280px] md:w-[320px] shrink-0 transition-colors"
       style={{
         background: 'var(--bg-column)',
       }}
+      {...fileDropHandlers}
     >
+      {isFileOver && (
+        <div
+          className="absolute inset-0 z-10 rounded-xl border-2 border-dashed flex items-center justify-center pointer-events-none"
+          style={{ borderColor: 'var(--color-primary-500)', background: 'color-mix(in srgb, var(--color-primary-500) 10%, transparent)' }}
+        >
+          <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="var(--color-primary-500)" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+          </svg>
+        </div>
+      )}
       <ColumnHeader column={column} taskCount={tasks.filter((t) => !t.archived).length} dragHandleProps={dragHandleProps} />
 
       {/* Desktop task input */}

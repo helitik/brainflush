@@ -4,8 +4,12 @@ import { useStore } from '../../hooks/useStore'
 import { useLanguage } from '../../hooks/useLanguage'
 import { useIsDesktop } from '../../hooks/useIsDesktop'
 import { useSwipeToDismiss } from '../../hooks/useSwipeToDismiss'
+import { useBackClose } from '../../hooks/useBackClose'
 import { ConfirmModal } from '../shared/ConfirmModal'
 import { requestNotificationPermission } from '../../hooks/useReminders'
+import { useTaskImages, useImagePicker, useFileDrop, processFiles } from '../../hooks/useImages'
+import { deleteImage } from '../../lib/imageStore'
+import { showToast } from '../../hooks/useToast'
 
 // Format a Date/timestamp to local 'YYYY-MM-DDTHH:MM' for datetime-local input
 function toLocalDatetime(ts) {
@@ -54,6 +58,8 @@ export function TaskDetailModal({ task, onClose }) {
   const moveTask = useStore((s) => s.moveTask)
   const setReminder = useStore((s) => s.setReminder)
   const clearReminder = useStore((s) => s.clearReminder)
+  const addTaskImages = useStore((s) => s.addTaskImages)
+  const removeTaskImage = useStore((s) => s.removeTaskImage)
   const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true
 
   // Find current column and tab
@@ -70,7 +76,26 @@ export function TaskDetailModal({ task, onClose }) {
   )
   const [reminderError, setReminderError] = useState(null)
   const [minDatetime] = useState(() => toLocalDatetime(Date.now()))
+  const [pendingImageIds, setPendingImageIds] = useState([])
+  const [removedImageIds, setRemovedImageIds] = useState([])
+  const [fullscreenImage, setFullscreenImage] = useState(null)
   const textareaRef = useRef(null)
+  const currentImageIds = useMemo(() => {
+    const base = task.images || []
+    return [...base.filter((id) => !removedImageIds.includes(id)), ...pendingImageIds]
+  }, [task.images, removedImageIds, pendingImageIds])
+  const taskImages = useTaskImages(currentImageIds)
+  const { pickImages, pending: imagesPending } = useImagePicker()
+  const handleFileDrop = useCallback(async (files) => {
+    const remaining = 3 - currentImageIds.length
+    if (remaining <= 0) return
+    const { ids, errors } = await processFiles(files, remaining)
+    if (ids.length) setPendingImageIds((prev) => [...prev, ...ids])
+    if (errors.length) for (const err of new Set(errors)) showToast(t(`images.${err}`))
+  }, [currentImageIds.length, t])
+  const { isDragOver, handlers: dropHandlers } = useFileDrop(handleFileDrop, {
+    enabled: currentImageIds.length < 3,
+  })
   const saveRef = useRef(null)
   const { sheetRef, handlers: swipeHandlers } = useSwipeToDismiss(
     useCallback(() => saveRef.current?.(), [])
@@ -107,6 +132,9 @@ export function TaskDetailModal({ task, onClose }) {
     }
   }, [])
 
+  // Back button / Escape closes fullscreen image before closing modal
+  useBackClose(!!fullscreenImage, () => setFullscreenImage(null))
+
   const handleSave = () => {
     const trimmed = text.trim()
     if (trimmed && trimmed !== task.text) {
@@ -125,11 +153,23 @@ export function TaskDetailModal({ task, onClose }) {
     } else if (task.reminderAt) {
       clearReminder(task.id)
     }
+    // Persist image changes
+    if (removedImageIds.length > 0) {
+      for (const id of removedImageIds) {
+        removeTaskImage(task.id, id)
+        // Async cleanup from IndexedDB
+        deleteImage(id).catch(() => {})
+      }
+    }
+    if (pendingImageIds.length > 0) {
+      addTaskImages(task.id, pendingImageIds)
+    }
     onClose()
   }
   useEffect(() => { saveRef.current = handleSave })
 
   const handleDelete = () => {
+    for (const id of pendingImageIds) deleteImage(id).catch(() => {})
     deleteTask(task.id)
     onClose()
   }
@@ -228,7 +268,7 @@ export function TaskDetailModal({ task, onClose }) {
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
-            if (e.key === 'Escape') onClose()
+            if (e.key === 'Escape') handleSave()
           }}
           rows={1}
           className="w-full px-3 py-2 rounded-xl border text-sm outline-none resize-none overflow-hidden mb-2"
@@ -239,6 +279,70 @@ export function TaskDetailModal({ task, onClose }) {
           }}
           autoFocus
         />
+
+        {/* Image gallery */}
+        <div className="flex gap-2 mb-2 overflow-x-auto no-scrollbar items-center">
+          {taskImages.map((img) => (
+            <div key={img.id} className="relative shrink-0 w-20 h-20 rounded-lg overflow-hidden" style={{ background: 'var(--bg-column)' }}>
+              {img.loading ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <span className="text-xs" style={{ color: 'var(--text-muted)' }}>{t('images.downloading')}</span>
+                </div>
+              ) : img.url ? (
+                <img
+                  src={img.url}
+                  alt=""
+                  className="w-full h-full object-cover cursor-pointer"
+                  onClick={() => setFullscreenImage(img.url)}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="var(--text-muted)" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+                  </svg>
+                </div>
+              )}
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={(e) => {
+                  e.stopPropagation()
+                  if (pendingImageIds.includes(img.id)) {
+                    setPendingImageIds((prev) => prev.filter((i) => i !== img.id))
+                    deleteImage(img.id).catch(() => {})
+                  } else {
+                    setRemovedImageIds((prev) => [...prev, img.id])
+                  }
+                }}
+                className="absolute top-0.5 right-0.5 w-5 h-5 rounded-full flex items-center justify-center"
+                style={{ background: 'rgba(0,0,0,0.6)', color: 'white' }}
+              >
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          ))}
+          {currentImageIds.length < 3 && (
+            <button
+              type="button"
+              disabled={imagesPending}
+              onMouseDown={(e) => e.preventDefault()}
+              onClick={async () => {
+                const { ids, errors } = await pickImages(currentImageIds.length)
+                if (ids.length) setPendingImageIds((prev) => [...prev, ...ids])
+                if (errors.length) for (const err of new Set(errors)) showToast(t(`images.${err}`))
+              }}
+              className="shrink-0 w-20 h-20 rounded-lg border-2 border-dashed flex flex-col items-center justify-center gap-1 transition-colors hover:opacity-80"
+              style={{ borderColor: 'var(--border-color)', color: 'var(--text-muted)' }}
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909M3.75 21h16.5A2.25 2.25 0 0022.5 18.75V5.25A2.25 2.25 0 0020.25 3H3.75A2.25 2.25 0 001.5 5.25v13.5A2.25 2.25 0 003.75 21z" />
+              </svg>
+              <span className="text-[10px]">{imagesPending ? '...' : '+'}</span>
+            </button>
+          )}
+        </div>
 
         <Separator />
 
@@ -380,13 +484,20 @@ export function TaskDetailModal({ task, onClose }) {
     >
       <div
         ref={!isDesktop ? sheetRef : undefined}
-        className={`w-full flex flex-col ${isDesktop ? 'max-w-md max-h-[80vh] rounded-xl shadow-lg overflow-hidden' : 'max-h-[85vh] rounded-t-2xl p-5 shadow-xl'}`}
+        className={`relative w-full flex flex-col ${isDesktop ? 'max-w-md max-h-[80vh] rounded-xl shadow-lg overflow-hidden' : 'max-h-[85vh] rounded-t-2xl p-5 shadow-xl'}`}
         style={{
           background: 'var(--bg-card)',
           ...(!isDesktop && { paddingBottom: 'max(2rem, env(safe-area-inset-bottom))' }),
         }}
         onClick={(e) => e.stopPropagation()}
+        {...dropHandlers}
       >
+        {isDragOver && (
+          <div
+            className="absolute inset-0 z-10 rounded-xl border-2 border-dashed pointer-events-none"
+            style={{ borderColor: 'var(--color-primary-500)', background: 'color-mix(in srgb, var(--color-primary-500) 10%, transparent)' }}
+          />
+        )}
         {isDesktop ? (
           <>
             {/* Header */}
@@ -394,7 +505,7 @@ export function TaskDetailModal({ task, onClose }) {
               <h2 className="text-lg font-semibold" style={{ color: 'var(--text-primary)' }}>
                 {t('taskDetail.editTask')}
               </h2>
-              <button onClick={onClose} className="p-1 rounded-lg" style={{ color: 'var(--text-secondary)' }}>
+              <button onClick={handleSave} className="p-1 rounded-lg" style={{ color: 'var(--text-secondary)' }}>
                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -421,6 +532,15 @@ export function TaskDetailModal({ task, onClose }) {
         title={t('taskDetail.confirmTitle')}
         message={t('taskDetail.confirmMessage')}
       />
+
+      {fullscreenImage && (
+        <div
+          className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90"
+          onClick={(e) => { e.stopPropagation(); setFullscreenImage(null) }}
+        >
+          <img src={fullscreenImage} alt="" className="max-w-full max-h-full object-contain" />
+        </div>
+      )}
     </div>,
     document.body
   )

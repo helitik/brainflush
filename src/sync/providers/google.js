@@ -22,7 +22,7 @@ function getFileId() {
   return localStorage.getItem(GOOGLE_FILE_ID_KEY)
 }
 
-async function getAccessToken() {
+export async function getAccessToken() {
   const tokens = getTokens()
   if (!tokens) throw new Error('notConnected')
 
@@ -61,7 +61,7 @@ async function getAccessToken() {
   return updated.access_token
 }
 
-async function driveApi(path, options = {}) {
+export async function driveApi(path, options = {}) {
   const token = await getAccessToken()
   const res = await fetch(`https://www.googleapis.com/drive/v3${path}`, {
     ...options,

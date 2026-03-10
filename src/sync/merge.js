@@ -41,6 +41,27 @@ function diffCollection(baseArr, sideArr) {
 }
 
 // --- 2.3 Merge a single entity modified on both sides ---
+function arraysEqual(a, b) {
+  if (a === b) return true
+  if (!a || !b || a.length !== b.length) return false
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] !== b[i]) return false
+  }
+  return true
+}
+
+function mergeImageSets(baseVal, localVal, remoteVal) {
+  const baseSet = new Set(baseVal || [])
+  const localAdded = (localVal || []).filter((id) => !baseSet.has(id))
+  const remoteAdded = (remoteVal || []).filter((id) => !baseSet.has(id))
+  const localDeleted = [...baseSet].filter((id) => !(localVal || []).includes(id))
+  const remoteDeleted = [...baseSet].filter((id) => !(remoteVal || []).includes(id))
+  const merged = new Set([...baseSet, ...localAdded, ...remoteAdded])
+  localDeleted.forEach((id) => merged.delete(id))
+  remoteDeleted.forEach((id) => merged.delete(id))
+  return [...merged]
+}
+
 function mergeEntity(baseItem, localItem, remoteItem, preferRemote) {
   const merged = { ...baseItem }
   const allKeys = new Set([...Object.keys(localItem), ...Object.keys(remoteItem)])
@@ -49,6 +70,22 @@ function mergeEntity(baseItem, localItem, remoteItem, preferRemote) {
     const baseVal = baseItem[key]
     const localVal = localItem[key]
     const remoteVal = remoteItem[key]
+
+    // Set-based merge for images arrays (normalize undefined/null to [])
+    if (key === 'images') {
+      const bv = baseVal ?? []
+      const lv = localVal ?? []
+      const rv = remoteVal ?? []
+      const localChanged = !arraysEqual(lv, bv)
+      const remoteChanged = !arraysEqual(rv, bv)
+      if (localChanged || remoteChanged) {
+        merged[key] = mergeImageSets(bv, lv, rv)
+      } else {
+        merged[key] = bv
+      }
+      continue
+    }
+
     const localChanged = localVal !== baseVal
     const remoteChanged = remoteVal !== baseVal
 

@@ -102,6 +102,15 @@ export function SyncSettings({ onClose }) {
                   </div>
                 </div>
 
+                {syncProvider === 'github' && (
+                  <div className="flex items-center gap-1.5 text-xs" style={{ color: '#f59e0b' }}>
+                    <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                    </svg>
+                    {t('sync.githubNoImages')}
+                  </div>
+                )}
+
                 <div className="flex gap-2">
                   <button
                     onClick={triggerSync}
@@ -127,27 +136,6 @@ export function SyncSettings({ onClose }) {
                   {t('sync.description')}
                 </p>
 
-                {/* GitHub */}
-                <button
-                  onClick={() => hasGithubCredentials && connect('github')}
-                  disabled={!hasGithubCredentials}
-                  className="w-full flex items-center gap-3 p-3 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-95 dark:hover:brightness-110 disabled:hover:brightness-100"
-                  style={{ background: 'var(--bg-input)', color: 'var(--text-primary)' }}
-                >
-                  <GitHubIcon />
-                  <div className="text-left flex-1">
-                    <div className="font-medium text-sm">GitHub Gist</div>
-                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
-                      {hasGithubCredentials ? t('sync.githubDescription') : t('sync.notConfigured')}
-                    </div>
-                  </div>
-                  {hasGithubCredentials && (
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--text-muted)' }}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                    </svg>
-                  )}
-                </button>
-
                 {/* Google Drive */}
                 <button
                   onClick={() => hasGoogleCredentials && connect('google')}
@@ -163,6 +151,35 @@ export function SyncSettings({ onClose }) {
                     </div>
                   </div>
                   {hasGoogleCredentials && (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--text-muted)' }}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  )}
+                </button>
+
+                {/* GitHub */}
+                <button
+                  onClick={() => hasGithubCredentials && connect('github')}
+                  disabled={!hasGithubCredentials}
+                  className="w-full flex items-center gap-3 p-3 rounded-lg transition-colors disabled:opacity-40 disabled:cursor-not-allowed hover:brightness-95 dark:hover:brightness-110 disabled:hover:brightness-100"
+                  style={{ background: 'var(--bg-input)', color: 'var(--text-primary)' }}
+                >
+                  <GitHubIcon />
+                  <div className="text-left flex-1">
+                    <div className="font-medium text-sm">GitHub Gist</div>
+                    <div className="text-xs" style={{ color: 'var(--text-muted)' }}>
+                      {hasGithubCredentials ? t('sync.githubDescription') : t('sync.notConfigured')}
+                    </div>
+                    {hasGithubCredentials && (
+                      <div className="flex items-center gap-1 mt-0.5 text-xs" style={{ color: '#f59e0b' }}>
+                        <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+                        </svg>
+                        {t('sync.githubNoImages')}
+                      </div>
+                    )}
+                  </div>
+                  {hasGithubCredentials && (
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ color: 'var(--text-muted)' }}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                     </svg>

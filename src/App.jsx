@@ -25,6 +25,8 @@ import { ColumnEditor } from './components/columns/ColumnEditor'
 import { AddTaskSheet } from './components/tasks/AddTaskSheet'
 import { ArchiveView } from './components/tasks/ArchiveView'
 import { TaskDetailModal } from './components/tasks/TaskDetailModal'
+import { useTaskImages } from './hooks/useImages'
+import { ImageCell } from './components/tasks/TaskCard'
 import { useBackClose, useNavigationBack } from './hooks/useBackClose'
 import { useIsDesktop } from './hooks/useIsDesktop'
 import { useSyncEngine } from './hooks/useSync'
@@ -35,6 +37,7 @@ import { SyncConflict } from './components/sync/SyncConflict'
 import { SyncReconnect } from './components/sync/SyncReconnect'
 import { InstallBanner } from './components/layout/InstallBanner'
 import { DataModal } from './components/shared/DataModal'
+import { Toast } from './components/shared/Toast'
 import { OnboardingModal } from './components/onboarding/OnboardingModal'
 import { github } from './sync/providers/github'
 import { google } from './sync/providers/google'
@@ -124,6 +127,7 @@ function App() {
   const [activeTask, setActiveTask] = useState(null)
   const [detailTask, setDetailTask] = useState(null)
   const [highlightedTaskId, setHighlightedTaskId] = useState(null)
+  const activeTaskImages = useTaskImages(activeTask?.images || [])
 
   const hasCompletedOnboarding = useStore((s) => s.hasCompletedOnboarding)
   const [showOnboarding, setShowOnboarding] = useState(!hasCompletedOnboarding)
@@ -520,6 +524,9 @@ function App() {
         if (overIndex >= 0 && activeIndex !== overIndex) {
           const newOrder = arrayMove(items, activeIndex, overIndex)
           moveTask(active.id, activeContainer, newOrder.indexOf(active.id))
+        } else {
+          // Persist cross-column move already applied by handleDragOver
+          moveTask(active.id, activeContainer, activeIndex >= 0 ? activeIndex : 0)
         }
       } else {
         // Cross-column (onDragOver should have handled this, but commit position)
@@ -732,11 +739,34 @@ function App() {
                 </div>
               ) : activeTask ? (
                 <div className="opacity-90">
-                  <div className="overflow-hidden rounded-lg">
-                    <div
-                      className="flex items-start gap-2 p-3 rounded-lg"
-                      style={{ background: 'var(--bg-card)', boxShadow: '0 8px 20px rgba(0,0,0,0.15)' }}
-                    >
+                  <div className="overflow-hidden rounded-lg"
+                    style={{ background: 'var(--bg-card)', boxShadow: '0 8px 20px rgba(0,0,0,0.15)' }}
+                  >
+                    {activeTaskImages.length > 0 && (
+                      <>
+                        {activeTaskImages.length === 1 && (
+                          <div className="w-full overflow-hidden rounded-t-lg" style={{ maxHeight: 180 }}>
+                            <ImageCell img={activeTaskImages[0]} className="w-full object-cover" style={{ maxHeight: 180, height: activeTaskImages[0].url ? undefined : 140 }} />
+                          </div>
+                        )}
+                        {activeTaskImages.length === 2 && (
+                          <div className="flex gap-0.5 overflow-hidden rounded-t-lg" style={{ height: 140 }}>
+                            <ImageCell img={activeTaskImages[0]} className="w-1/2 object-cover" />
+                            <ImageCell img={activeTaskImages[1]} className="w-1/2 object-cover" />
+                          </div>
+                        )}
+                        {activeTaskImages.length === 3 && (
+                          <div className="flex gap-0.5 overflow-hidden rounded-t-lg" style={{ height: 160 }}>
+                            <ImageCell img={activeTaskImages[0]} className="w-2/3 object-cover" />
+                            <div className="w-1/3 flex flex-col gap-0.5">
+                              <ImageCell img={activeTaskImages[1]} className="flex-1 w-full object-cover min-h-0" />
+                              <ImageCell img={activeTaskImages[2]} className="flex-1 w-full object-cover min-h-0" />
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    )}
+                    <div className="flex items-start gap-2 p-3">
                       <span
                         className="flex-1 text-sm select-none min-w-0 break-words"
                         style={{ color: 'var(--text-primary)' }}
@@ -786,6 +816,8 @@ function App() {
       {showOnboarding && (
         <OnboardingModal onClose={() => setShowOnboarding(false)} />
       )}
+
+      <Toast />
     </div>
   )
 }
