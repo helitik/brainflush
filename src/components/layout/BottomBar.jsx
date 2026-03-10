@@ -1,17 +1,21 @@
 import { useState, useEffect } from 'react'
-import { useStore } from '../../hooks/useStore'
+import { useStore, getTabWidth } from '../../hooks/useStore'
 
-function useLeftCapacity() {
-  const calc = () => Math.floor((window.innerWidth / 2 - 32) / 64)
-  const [capacity, setCapacity] = useState(calc)
+function useTabLayout() {
+  const calc = () => {
+    const tabWidth = getTabWidth()
+    const leftCapacity = Math.floor((window.innerWidth / 2 - 32) / tabWidth)
+    return { tabWidth, leftCapacity }
+  }
+  const [layout, setLayout] = useState(calc)
 
   useEffect(() => {
-    const onResize = () => setCapacity(calc())
+    const onResize = () => setLayout(calc())
     window.addEventListener('resize', onResize)
     return () => window.removeEventListener('resize', onResize)
   }, [])
 
-  return capacity
+  return layout
 }
 
 function useKeyboardOpen() {
@@ -41,16 +45,17 @@ export function BottomBar({ onAddTask }) {
     .filter((t) => t.pinnedOrder != null)
     .sort((a, b) => a.pinnedOrder - b.pinnedOrder)
 
-  const leftCapacity = useLeftCapacity()
-  const leftTabs = pinnedTabs.slice(0, leftCapacity)
-  const rightTabs = pinnedTabs.slice(leftCapacity)
+  const layout = useTabLayout()
+  const leftTabs = pinnedTabs.slice(0, layout.leftCapacity)
+  const rightTabs = pinnedTabs.slice(layout.leftCapacity)
 
   const renderTab = (tab) => (
     <button
       key={tab.id}
       onClick={() => setActiveTab(tab.id)}
-      className="relative flex flex-col items-center justify-center gap-0.5 w-16 transition-colors min-w-0 hover:bg-surface-200 dark:hover:bg-surface-700"
+      className="relative flex flex-col items-center justify-center gap-0.5 transition-colors min-w-0 hover:bg-surface-200 dark:hover:bg-surface-700"
       style={{
+        width: `${layout.tabWidth}px`,
         color: tab.id === activeTabId ? 'var(--color-primary-500)' : 'var(--text-muted)',
       }}
     >
@@ -62,7 +67,13 @@ export function BottomBar({ onAddTask }) {
         }}
       />
       <span className="text-base leading-none">{tab.emoji || '📋'}</span>
-      <span className="text-[10px] font-medium truncate max-w-[64px]">
+      <span
+        className="font-medium truncate"
+        style={{
+          fontSize: layout.tabWidth < 50 ? '9px' : '10px',
+          maxWidth: `${layout.tabWidth}px`,
+        }}
+      >
         {tab.name}
       </span>
     </button>

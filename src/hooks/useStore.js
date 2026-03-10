@@ -6,12 +6,18 @@ import { en, fr } from '../i18n/translations'
 const langs = { en, fr }
 const t = (lang, key) => langs[lang]?.[key] ?? langs.en[key] ?? key
 
-const TAB_WIDTH = 64
+const MIN_TABS = 6
+const MAX_TAB_WIDTH = 64
 const CENTER_WIDTH = 64
 
 export function getMaxPinnedTabs() {
-  if (typeof window === 'undefined') return 4
-  return Math.max(2, Math.floor((window.innerWidth - CENTER_WIDTH) / TAB_WIDTH))
+  if (typeof window === 'undefined') return MIN_TABS
+  return Math.max(MIN_TABS, Math.floor((window.innerWidth - CENTER_WIDTH) / MAX_TAB_WIDTH))
+}
+
+export function getTabWidth() {
+  if (typeof window === 'undefined') return MAX_TAB_WIDTH
+  return (window.innerWidth - CENTER_WIDTH) / getMaxPinnedTabs()
 }
 
 function createDefaultColumns(tabId, lang = 'en') {
