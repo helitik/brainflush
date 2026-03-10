@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => {
         strategies: 'injectManifest',
         srcDir: 'src',
         filename: 'sw.js',
-        registerType: 'autoUpdate',
+        injectRegister: false,
         includeAssets: ['icons/*.png', 'icons/*.svg'],
         manifest: {
           name: 'Brainflush',
