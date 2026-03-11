@@ -3,6 +3,7 @@ import { github } from './providers/github'
 import { google } from './providers/google'
 import { SYNC_DEBOUNCE_MS, SYNC_POLL_INTERVAL_MS, GOOGLE_REFRESH_INTERVAL_MS, SYNC_BASE_KEY } from './syncConstants'
 import { threeWayMerge } from './merge'
+import { syncImages } from './providers/googleImages'
 
 const providers = { github, google }
 
@@ -82,6 +83,40 @@ function loadBase() {
 
 export function clearBase() {
   localStorage.removeItem(SYNC_BASE_KEY)
+}
+
+function collectAllImageIds(state) {
+  const ids = new Set()
+  for (const task of state.tasks) {
+    if (task.images) {
+      for (const id of task.images) ids.add(id)
+    }
+  }
+  return [...ids]
+}
+
+let isImageSyncing = false
+let pendingImageSync = false
+
+function triggerImageSync() {
+  const provider = getProvider()
+  if (provider?.name === 'google') {
+    if (isImageSyncing) {
+      pendingImageSync = true
+      return
+    }
+    isImageSyncing = true
+    const getFreshIds = () => collectAllImageIds(useStore.getState())
+    syncImages(getFreshIds)
+      .catch((e) => console.warn('[sync] image sync error:', e))
+      .finally(() => {
+        isImageSyncing = false
+        if (pendingImageSync) {
+          pendingImageSync = false
+          triggerImageSync()
+        }
+      })
+  }
 }
 
 // Fields that constitute "user data" changes (not sync metadata)
@@ -182,6 +217,7 @@ async function doPush() {
     useStore.getState().setSyncStatus('idle')
     hasPendingPush = false
     retryCount = 0
+    triggerImageSync()
   } catch (e) {
     console.error('[sync] push error:', e)
     if (e.message === 'notConnected') {
@@ -258,6 +294,7 @@ async function doPull(silent = false) {
     }
     useStore.getState().setLastSyncCompletedAt()
     if (!silent) useStore.getState().setSyncStatus('idle')
+    triggerImageSync()
   } catch (e) {
     console.error('[sync] pull error:', e)
     if (e.message === 'notConnected') {
@@ -444,6 +481,8 @@ export function stopSyncEngine() {
   prevSnapshot = null
   hasPendingPush = false
   isSyncing = false
+  isImageSyncing = false
+  pendingImageSync = false
   retryCount = 0
 }
 

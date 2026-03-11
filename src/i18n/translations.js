@@ -211,6 +211,16 @@ export const en = {
   'reminder.backgroundNote': 'Reminders work best when the app is open.',
   'reminder.installHint': 'Add the app to your home screen to receive notifications.',
 
+  // Images
+  'images.add': 'Add image',
+  'images.remove': 'Remove',
+  'images.limit': 'Maximum 3 images per task',
+  'images.tooLarge': 'Image too large (max 5 MB)',
+  'images.invalidType': 'Invalid file type',
+  'images.downloading': 'Loading...',
+  'images.unavailableOffline': 'Not available offline',
+  'sync.githubNoImages': 'Images are stored locally only',
+
   // Error boundary
   'error.title': 'Oops, something broke!',
   'error.subtitle': "Don't worry, your data is safe. Try reloading.",
@@ -450,6 +460,16 @@ export const fr = {
   'reminder.unsupported': 'Les notifications ne sont pas supportées sur ce navigateur.',
   'reminder.backgroundNote': 'Les rappels fonctionnent mieux quand l\'app est ouverte.',
   'reminder.installHint': "Ajouter l'app à l'écran d'accueil pour recevoir les notifications.",
+
+  // Images
+  'images.add': 'Ajouter une image',
+  'images.remove': 'Supprimer',
+  'images.limit': 'Maximum 3 images par tâche',
+  'images.tooLarge': 'Image trop volumineuse (max 5 Mo)',
+  'images.invalidType': 'Type de fichier invalide',
+  'images.downloading': 'Chargement...',
+  'images.unavailableOffline': 'Indisponible hors ligne',
+  'sync.githubNoImages': 'Les images sont stockées localement uniquement',
 
   // Error boundary
   'error.title': 'Oups, quelque chose a cassé !',

@@ -2,6 +2,7 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { generateId } from '../lib/uuid'
 import { en, fr } from '../i18n/translations'
+import { clearAllImages, deleteImage } from '../lib/imageStore'
 
 const langs = { en, fr }
 const t = (lang, key) => langs[lang]?.[key] ?? langs.en[key] ?? key
@@ -220,7 +221,7 @@ export const useStore = create(
         }),
 
       // --- Tasks ---
-      addTask: (columnId, text) => {
+      addTask: (columnId, text, imageIds = []) => {
         const id = generateId()
         set((s) => {
           const colTasks = s.tasks.filter(
@@ -240,6 +241,7 @@ export const useStore = create(
                 order: colTasks.length,
                 reminderAt: null,
                 reminderFired: false,
+                images: imageIds,
               },
             ],
           }
@@ -296,10 +298,38 @@ export const useStore = create(
           }
         }),
 
-      deleteTask: (id) =>
+      deleteTask: (id) => {
+        const task = useStore.getState().tasks.find((t) => t.id === id)
         set((s) => ({
           tasks: s.tasks.filter((t) => t.id !== id),
           justArchivedIds: s.justArchivedIds.filter((i) => i !== id),
+        }))
+        // Cleanup orphan images from IndexedDB
+        if (task?.images?.length) {
+          const allImageIds = new Set(
+            useStore.getState().tasks.flatMap((t) => t.images || [])
+          )
+          for (const imgId of task.images) {
+            if (!allImageIds.has(imgId)) {
+              deleteImage(imgId).catch(() => {})
+            }
+          }
+        }
+      },
+
+      // --- Images ---
+      addTaskImages: (taskId, imageIds) =>
+        set((s) => ({
+          tasks: s.tasks.map((t) =>
+            t.id === taskId ? { ...t, images: [...(t.images || []), ...imageIds] } : t
+          ),
+        })),
+
+      removeTaskImage: (taskId, imageId) =>
+        set((s) => ({
+          tasks: s.tasks.map((t) =>
+            t.id === taskId ? { ...t, images: (t.images || []).filter((i) => i !== imageId) } : t
+          ),
         })),
 
       moveAllTasks: (fromColumnId, toColumnId) =>
@@ -420,6 +450,7 @@ export const useStore = create(
         const task = (columnId, text, order) => ({
           id: generateId(), columnId, text, archived: false,
           archivedAt: null, originalColumnId: null, createdAt: Date.now(), order,
+          reminderAt: null, reminderFired: false, images: [],
         })
         return {
           tabs: [
@@ -607,11 +638,12 @@ export const useStore = create(
         // persist middleware re-writes synchronously on set() — remove so app
         // behaves like a fresh install (will re-persist on next user action)
         localStorage.removeItem('brainflush-data')
+        clearAllImages().catch(() => {})
       },
     })),
     {
       name: 'brainflush-data',
-      version: 7,
+      version: 8,
       migrate: (persisted, version) => {
         if (version < 2 && persisted.theme === 'system') {
           persisted.theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
@@ -639,6 +671,12 @@ export const useStore = create(
             ...t,
             reminderAt: t.reminderAt ?? null,
             reminderFired: t.reminderFired ?? false,
+          }))
+        }
+        if (version < 8 && persisted.tasks) {
+          persisted.tasks = persisted.tasks.map((t) => ({
+            ...t,
+            images: t.images || [],
           }))
         }
         return persisted

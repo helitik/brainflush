@@ -3,6 +3,74 @@ import { useStore } from '../../hooks/useStore'
 import { useLanguage } from '../../hooks/useLanguage'
 import { useBackClose } from '../../hooks/useBackClose'
 import { ConfirmModal } from '../shared/ConfirmModal'
+import { useTaskImages } from '../../hooks/useImages'
+import { ImageCell } from './TaskCard'
+
+function ArchiveTaskCard({ task, formatDate, getColumnName, restoreTask, setConfirmId, t }) {
+  const hasImages = task.images?.length > 0
+  const taskImages = useTaskImages(hasImages ? task.images : [])
+  const imageCount = hasImages ? taskImages.length : 0
+
+  return (
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}
+    >
+      {imageCount === 1 && (
+        <div className="w-full overflow-hidden" style={{ maxHeight: 140 }}>
+          <ImageCell img={taskImages[0]} className="w-full object-cover" style={{ maxHeight: 140 }} />
+        </div>
+      )}
+      {imageCount === 2 && (
+        <div className="flex gap-0.5 overflow-hidden" style={{ height: 100 }}>
+          <ImageCell img={taskImages[0]} className="w-1/2 object-cover" />
+          <ImageCell img={taskImages[1]} className="w-1/2 object-cover" />
+        </div>
+      )}
+      {imageCount === 3 && (
+        <div className="flex gap-0.5 overflow-hidden" style={{ height: 120 }}>
+          <ImageCell img={taskImages[0]} className="w-2/3 object-cover" />
+          <div className="w-1/3 flex flex-col gap-0.5">
+            <ImageCell img={taskImages[1]} className="flex-1 w-full object-cover min-h-0" />
+            <ImageCell img={taskImages[2]} className="flex-1 w-full object-cover min-h-0" />
+          </div>
+        </div>
+      )}
+      <div className="flex items-start gap-3 p-3">
+        <div className="flex-1 min-w-0">
+          <p className="text-sm line-through opacity-60" style={{ color: 'var(--text-primary)' }}>
+            {task.text}
+          </p>
+          <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
+            {t('archive.meta', formatDate(task.archivedAt), getColumnName(task.originalColumnId))}
+          </p>
+        </div>
+        <div className="flex gap-2 shrink-0">
+          <button
+            onClick={() => restoreTask(task.id)}
+            className="p-2.5 rounded-xl transition-colors hover:bg-primary-50 dark:hover:bg-primary-900/20"
+            style={{ color: 'var(--color-primary-500)' }}
+            title={t('archive.restore')}
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
+            </svg>
+          </button>
+          <button
+            onClick={() => setConfirmId(task.id)}
+            className="p-2.5 rounded-xl transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"
+            style={{ color: '#ef4444' }}
+            title={t('archive.deletePermanently')}
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 export function ArchiveView() {
   const activeTabId = useStore((s) => s.activeTabId)
@@ -89,42 +157,7 @@ export function ArchiveView() {
   }
 
   const renderTaskCard = (task) => (
-    <div
-      key={task.id}
-      className="flex items-start gap-3 p-3 rounded-xl"
-      style={{ background: 'var(--bg-card)', boxShadow: 'var(--shadow-sm)' }}
-    >
-      <div className="flex-1 min-w-0">
-        <p className="text-sm line-through opacity-60" style={{ color: 'var(--text-primary)' }}>
-          {task.text}
-        </p>
-        <p className="text-xs mt-1" style={{ color: 'var(--text-muted)' }}>
-          {t('archive.meta', formatDate(task.archivedAt), getColumnName(task.originalColumnId))}
-        </p>
-      </div>
-      <div className="flex gap-2 shrink-0">
-        <button
-          onClick={() => restoreTask(task.id)}
-          className="p-2.5 rounded-xl transition-colors hover:bg-primary-50 dark:hover:bg-primary-900/20"
-          style={{ color: 'var(--color-primary-500)' }}
-          title={t('archive.restore')}
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" />
-          </svg>
-        </button>
-        <button
-          onClick={() => setConfirmId(task.id)}
-          className="p-2.5 rounded-xl transition-colors hover:bg-red-50 dark:hover:bg-red-900/20"
-          style={{ color: '#ef4444' }}
-          title={t('archive.deletePermanently')}
-        >
-          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>
-      </div>
-    </div>
+    <ArchiveTaskCard key={task.id} task={task} formatDate={formatDate} getColumnName={getColumnName} restoreTask={restoreTask} setConfirmId={setConfirmId} t={t} />
   )
 
   const renderEmptyState = () => (

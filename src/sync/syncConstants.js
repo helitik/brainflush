@@ -14,3 +14,5 @@ export const GITHUB_USER_KEY = 'brainflush-sync-github-user'
 export const GOOGLE_USER_KEY = 'brainflush-sync-google-user'
 
 export const SYNC_BASE_KEY = 'brainflush-sync-base'
+
+export const IMAGE_FILE_PREFIX = 'brainflush-img-'
