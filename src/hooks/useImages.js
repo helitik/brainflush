@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react'
-import { getImageUrl, revokeImageUrl, putImage, onImageReady, protectImage } from '../lib/imageStore'
+import { getImageUrl, putImage, onImageReady, protectImage } from '../lib/imageStore'
 import { processImage, generateImageId, validateImageFile } from '../lib/imageUtils'
 
 export async function processFiles(files, maxCount = 3) {

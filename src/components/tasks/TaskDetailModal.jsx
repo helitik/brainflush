@@ -8,7 +8,7 @@ import { useBackClose } from '../../hooks/useBackClose'
 import { ConfirmModal } from '../shared/ConfirmModal'
 import { requestNotificationPermission } from '../../hooks/useReminders'
 import { useTaskImages, useImagePicker, useFileDrop, processFiles } from '../../hooks/useImages'
-import { deleteImage } from '../../lib/imageStore'
+import { deleteImage, unprotectImage } from '../../lib/imageStore'
 import { showToast } from '../../hooks/useToast'
 
 // Format a Date/timestamp to local 'YYYY-MM-DDTHH:MM' for datetime-local input
@@ -155,21 +155,29 @@ export function TaskDetailModal({ task, onClose }) {
     }
     // Persist image changes
     if (removedImageIds.length > 0) {
+      const allTasks = useStore.getState().tasks
       for (const id of removedImageIds) {
         removeTaskImage(task.id, id)
-        // Async cleanup from IndexedDB
-        deleteImage(id).catch(() => {})
+        // Only delete from IndexedDB if no other task references this image
+        const stillReferenced = allTasks.some(
+          (t) => t.id !== task.id && t.images?.includes(id)
+        )
+        if (!stillReferenced) deleteImage(id).catch(() => {})
       }
     }
     if (pendingImageIds.length > 0) {
       addTaskImages(task.id, pendingImageIds)
+      pendingImageIds.forEach((id) => unprotectImage(id))
     }
     onClose()
   }
   useEffect(() => { saveRef.current = handleSave })
 
   const handleDelete = () => {
-    for (const id of pendingImageIds) deleteImage(id).catch(() => {})
+    for (const id of pendingImageIds) {
+      unprotectImage(id)
+      deleteImage(id).catch(() => {})
+    }
     deleteTask(task.id)
     onClose()
   }

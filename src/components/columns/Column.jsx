@@ -7,6 +7,7 @@ import { ColumnHeader } from './ColumnHeader'
 import { TaskCard } from '../tasks/TaskCard'
 import { TaskInput } from '../tasks/TaskInput'
 import { useFileDrop, processFiles } from '../../hooks/useImages'
+import { unprotectImage } from '../../lib/imageStore'
 import { showToast } from '../../hooks/useToast'
 
 export function Column({ column, onAddTask, liveTaskIds, onOpenDetail, highlightedTaskId, dragHandleProps = null }) {
@@ -17,7 +18,10 @@ export function Column({ column, onAddTask, liveTaskIds, onOpenDetail, highlight
 
   const handleFileDrop = useCallback(async (files) => {
     const { ids, errors } = await processFiles(files, 3)
-    if (ids.length) addTask(column.id, '', ids)
+    if (ids.length) {
+      addTask(column.id, '', ids)
+      ids.forEach((id) => unprotectImage(id))
+    }
     if (errors.length) for (const err of new Set(errors)) showToast(t(`images.${err}`))
   }, [column.id, addTask, t])
   const { isDragOver: isFileOver, handlers: fileDropHandlers } = useFileDrop(handleFileDrop)

@@ -114,15 +114,18 @@ export async function syncImages(allReferencedIds) {
         let width, height
         try {
           const url = URL.createObjectURL(blob)
-          const img = await new Promise((resolve, reject) => {
-            const i = new Image()
-            i.onload = () => resolve(i)
-            i.onerror = reject
-            i.src = url
-          })
-          width = img.naturalWidth
-          height = img.naturalHeight
-          URL.revokeObjectURL(url)
+          try {
+            const img = await new Promise((resolve, reject) => {
+              const i = new Image()
+              i.onload = () => resolve(i)
+              i.onerror = reject
+              i.src = url
+            })
+            width = img.naturalWidth
+            height = img.naturalHeight
+          } finally {
+            URL.revokeObjectURL(url)
+          }
         } catch {
           // Dimensions unavailable — store without them
         }
@@ -138,7 +141,8 @@ export async function syncImages(allReferencedIds) {
 
   // Cleanup orphans: images not referenced by any task (skip protected images being picked)
   const protectedSet = getProtectedIds()
-  for (const id of localIds) {
+  const freshLocalIds = new Set(await getAllImageIds())
+  for (const id of freshLocalIds) {
     if (!freshReferencedSet.has(id) && !protectedSet.has(id)) {
       deleteImage(id).catch(() => {})
     }

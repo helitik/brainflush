@@ -51,10 +51,18 @@ export async function processImage(file) {
     canvas.width = tw
     canvas.height = th
     const ctx = canvas.getContext('2d')
+    if (!ctx) {
+      canvas.width = 0
+      canvas.height = 0
+      throw new Error('Canvas 2D context not available')
+    }
     ctx.drawImage(img, 0, 0, tw, th)
 
-    const blob = await new Promise((resolve) =>
-      canvas.toBlob(resolve, 'image/jpeg', JPEG_QUALITY)
+    const blob = await new Promise((resolve, reject) =>
+      canvas.toBlob((result) => {
+        if (!result) reject(new Error('Failed to create image blob'))
+        else resolve(result)
+      }, 'image/jpeg', JPEG_QUALITY)
     )
 
     // Release canvas memory (important on mobile with limited GPU memory)
